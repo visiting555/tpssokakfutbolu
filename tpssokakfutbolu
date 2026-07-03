@@ -2,618 +2,474 @@ local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
-
+local RunService = game:GetService("RunService")
 local localPlayer = Players.LocalPlayer
 
-local gui = Instance.new("ScreenGui")
-gui.Name = "TPSFutbolUltimateHackMenu"
-gui.IgnoreGuiInset = true
-gui.ResetOnSpawn = false
-
--- Parent must be explicitly set to PlayerGui for menu always show, fallback to CoreGui for exploits
-local function safeParent(screenGui)
+local function getSafeParent()
     local playerGui = localPlayer:FindFirstChildOfClass("PlayerGui")
     if playerGui then
-        screenGui.Parent = playerGui
+        return playerGui
     else
-        pcall(function()
-            screenGui.Parent = CoreGui
-        end)
+        local succ,err = pcall(function() return CoreGui end)
+        if succ then return CoreGui end
     end
 end
-safeParent(gui)
+local gui = Instance.new("ScreenGui")
+gui.Name = "TSFMenuNew"
+gui.IgnoreGuiInset = false
+gui.ResetOnSpawn = false
+gui.Parent = getSafeParent()
 
-local main = Instance.new("Frame")
-main.Name = "Main"
-main.AnchorPoint = Vector2.new(0.5, 0.5)
-main.Size = UDim2.new(0, 620, 0, 690)
-main.Position = UDim2.new(0.5, 0, 0.52, 0)
-main.BackgroundColor3 = Color3.fromRGB(30,32,39)
-main.BorderSizePixel = 0
-main.Active = true
-main.Draggable = true
-main.Visible = true
-main.Parent = gui
+local menuOpen = true
+local function toggleMenu()
+    menuOpen = not menuOpen
+    gui.Enabled = menuOpen
+end
 
-local shadow = Instance.new("ImageLabel", main)
-shadow.AnchorPoint = Vector2.new(0.5,0.5)
-shadow.Position = UDim2.new(0.5,0,0.5,0)
-shadow.Size = UDim2.new(1,30,1,30)
-shadow.BackgroundTransparency = 1
-shadow.Image = "rbxassetid://3769406864"
-shadow.ImageTransparency = 0.33
-shadow.ZIndex=0
+local function dragify(frame)
+    local dragging, dragInput, mousePos, framePos
+    frame.InputBegan:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            mousePos = i.Position
+            framePos = frame.Position
+            i.Changed:Connect(function()
+                if i.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    frame.InputChanged:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseMovement then dragInput = i end
+    end)
+    UserInputService.InputChanged:Connect(function(i)
+        if i == dragInput and dragging then
+            local delta = i.Position - mousePos
+            frame.Position = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+        end
+    end)
+end
 
-local titleBar = Instance.new("Frame")
-titleBar.Name = "TitleBar"
-titleBar.Parent = main
-titleBar.Size = UDim2.new(1,0,0,43)
-titleBar.Position = UDim2.new(0,0,0,0)
-titleBar.BackgroundColor3 = Color3.fromRGB(15,17,26)
-titleBar.BorderSizePixel = 0
+local menu = Instance.new("Frame")
+menu.Name = "MainMenu"
+menu.Size = UDim2.new(0, 600, 0, 720)
+menu.Position = UDim2.new(0.5, -300, 0.5, -340)
+menu.AnchorPoint = Vector2.new(0.5,0.5)
+menu.BackgroundColor3 = Color3.fromRGB(25,28,33)
+menu.BorderSizePixel = 0
+menu.Visible = true
+menu.Parent = gui
 
-local titleLabel = Instance.new("TextLabel",titleBar)
-titleLabel.Text = "⚽ TPS SOKAK FUTBOLU ULTIMATE HİLE MENÜ ⚽"
-titleLabel.Size = UDim2.new(1,0,1,0)
-titleLabel.BackgroundColor3 = Color3.fromRGB(15,17,26)
-titleLabel.BackgroundTransparency = 1
-titleLabel.TextColor3 = Color3.fromRGB(255,219,88)
-titleLabel.TextSize = 27
-titleLabel.Font = Enum.Font.GothamSemibold
+dragify(menu)
 
-local close = Instance.new("TextButton", titleBar)
-close.Name = "Close"
-close.Text = "✖"
-close.Size = UDim2.new(0,42,1,0)
-close.Position = UDim2.new(1,-42,0,0)
-close.TextColor3 = Color3.fromRGB(255,64,64)
-close.Font = Enum.Font.GothamBold
-close.TextSize = 23
-close.BackgroundColor3 = Color3.fromRGB(41,6,6)
-close.BorderSizePixel = 0
-close.AutoButtonColor = true
-close.ZIndex = 10
-close.MouseButton1Click:Connect(function()
-    gui:Destroy()
+local topBar = Instance.new("Frame",menu)
+topBar.Name = "TopBar"
+topBar.Size = UDim2.new(1,0,0,45)
+topBar.BackgroundColor3 = Color3.fromRGB(20,21,36)
+topBar.BorderSizePixel = 0
+local title = Instance.new("TextLabel",topBar)
+title.Name = "Title"
+title.Text = "🟦 TPS SOKAK FUTBOLU HİLE MENÜSÜ 🟥"
+title.Size = UDim2.new(1,0,1,0)
+title.BackgroundTransparency = 1
+title.TextColor3 = Color3.fromRGB(255,255,119)
+title.Font = Enum.Font.GothamBlack
+title.TextSize = 28
+
+local closeBtn = Instance.new("TextButton",topBar)
+closeBtn.Name = "Close"
+closeBtn.Size = UDim2.new(0,42,1,0)
+closeBtn.Position = UDim2.new(1,-44,0,0)
+closeBtn.Text = "KAPAT"
+closeBtn.Font = Enum.Font.GothamBold
+closeBtn.TextColor3 = Color3.new(1,.2,.2)
+closeBtn.TextSize = 13
+closeBtn.BackgroundColor3 = Color3.fromRGB(60,0,0)
+closeBtn.BorderSizePixel = 0
+closeBtn.MouseButton1Click:Connect(function()
+    gui.Enabled = false
 end)
 
-local tabBar = Instance.new("Frame",main)
+local tabNames = {
+    "ANA","OYUNCU","TOP","TAKIM","ANTİ","VİZÜEL","OZELLEŞTİR","BİLGİ"
+}
+local tabButtons,tabFrames={},{}
+local activeTab = "ANA"
+
+local tabBar = Instance.new("Frame",menu)
 tabBar.Name = "TabBar"
-tabBar.Size = UDim2.new(1,0,0,38)
-tabBar.Position = UDim2.new(0,0,0,43)
-tabBar.BackgroundColor3 = Color3.fromRGB(49,55,70)
+tabBar.Size = UDim2.new(1,0,0,36)
+tabBar.Position = UDim2.new(0,0,0,45)
+tabBar.BackgroundColor3 = Color3.fromRGB(30,31,43)
 tabBar.BorderSizePixel = 0
 
-local tabs,tabPanels = {},{}
-local tabOrder = {"Hileler","Oyuncu","Top","Takım","Anti","Vizuel","Yardım"}
-local selectedTab = "Hileler"
-
-for i,tabName in ipairs(tabOrder) do
-    local tabBtn = Instance.new("TextButton",tabBar)
-    tabBtn.Name = tabName.."Tab"
-    tabBtn.Text = tabName
-    tabBtn.Font = Enum.Font.GothamSemibold
-    tabBtn.TextColor3 = Color3.fromRGB(245,245,235)
-    tabBtn.TextSize = 18
-    tabBtn.Size = UDim2.new(1/#tabOrder, 0, 1, 0)
-    tabBtn.Position = UDim2.new((i-1)/#tabOrder, 0, 0, 0)
-    tabBtn.BackgroundColor3 = (tabName==selectedTab) and Color3.fromRGB(80, 91, 140) or Color3.fromRGB(49,55,70)
-    tabBtn.BorderSizePixel = 0
-    tabBtn.AutoButtonColor = true
-    tabs[tabName] = tabBtn
-end
-
-local contentYStart = 81
-for _, tabName in ipairs(tabOrder) do
-    local panel = Instance.new("Frame", main)
-    panel.Name = "Panel_"..tabName
-    panel.Size = UDim2.new(1, 0, 1, -contentYStart)
-    panel.Position = UDim2.new(0, 0, 0, contentYStart)
-    panel.BackgroundTransparency = 1
-    panel.Visible = (tabName == selectedTab)
-    panel.ZIndex = 2
-    tabPanels[tabName] = panel
-end
-
-for _,tabBtn in pairs(tabs) do
-    tabBtn.MouseButton1Click:Connect(function()
-        for k,v in pairs(tabs) do
-            v.BackgroundColor3 = Color3.fromRGB(49,55,70)
-        end
-        tabBtn.BackgroundColor3 = Color3.fromRGB(80, 91, 140)
-        for k,p in pairs(tabPanels) do
-            p.Visible = (k==tabBtn.Text)
-        end
-        selectedTab = tabBtn.Text
-    end)
-end
-
-local function yeniButon(panel, y, baslik, func)
-    local btn = Instance.new("TextButton", panel)
-    btn.Size = UDim2.new(0.44,0,0,38)
-    btn.Position = UDim2.new(0.055,0,0,y)
-    btn.BackgroundColor3 = Color3.fromRGB(49,65,89)
-    btn.TextColor3 = Color3.fromRGB(219,255,106)
+for i,tab in ipairs(tabNames) do
+    local btn = Instance.new("TextButton",tabBar)
+    btn.Name = tab.."Btn"
+    btn.Text = tab
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 16
-    btn.Text = baslik
+    btn.TextSize = 17
+    btn.Size = UDim2.new(1/#tabNames,0,1,0)
+    btn.Position = UDim2.new((i-1)/#tabNames,0,0,0)
+    btn.BackgroundColor3 = tab==activeTab and Color3.fromRGB(94,145,231) or Color3.fromRGB(23,23,36)
+    btn.TextColor3 = Color3.fromRGB(240,240,180)
     btn.BorderSizePixel = 0
-    btn.AutoButtonColor = true
-    btn.ZIndex = 11
-    btn.MouseButton1Click:Connect(func)
-    return btn
+    tabButtons[tab] = btn
 end
 
-local function yeniToggle(panel, y, baslik, varTab, key)
-    local toggle = Instance.new("TextButton", panel)
-    toggle.Size = UDim2.new(0.44,0,0,38)
-    toggle.Position = UDim2.new(0.505,9,0,y)
-    toggle.BackgroundColor3 = Color3.fromRGB(53,100,65)
-    toggle.TextColor3 = Color3.fromRGB(96,210,163)
-    toggle.Font = Enum.Font.GothamBold
-    toggle.TextSize = 16
-    toggle.Text = baslik.." [KAPALI]"
+for _,tab in pairs(tabNames) do
+    local frame = Instance.new("ScrollingFrame")
+    frame.Name = tab.."_Frame"
+    frame.Size = UDim2.new(1,0,1,-86)
+    frame.Position = UDim2.new(0,0,0,81)
+    frame.BackgroundTransparency = 1
+    frame.BorderSizePixel = 0
+    frame.ScrollBarThickness = 5
+    frame.CanvasSize = UDim2.new(0,0,6,0)
+    frame.Visible = (tab==activeTab)
+    frame.Parent = menu
+    tabFrames[tab] = frame
+end
+
+for tab,btn in pairs(tabButtons) do
+    btn.MouseButton1Click:Connect(function()
+        for _,b in pairs(tabButtons) do b.BackgroundColor3=Color3.fromRGB(23,23,36) end
+        btn.BackgroundColor3 = Color3.fromRGB(94,145,231)
+        for t,f in pairs(tabFrames) do f.Visible = (t==tab) end
+        activeTab = tab
+    end)
+end
+
+local hiles = {
+    walkspeed=false,
+    jumppower=false,
+    infstamina=false,
+    catchball=false,
+    wallpass=false,
+    antikick=false,
+    magnet=false,
+    ballsize=false,
+    teamtp=nil,
+    noclip=false,
+    espball=false,
+    espplayer=false,
+    rainbowui=false,
+    infpass=false,
+    autoFarm=false,
+    camzoom=70,
+    haxboost=false,
+    camFollow=false,
+    antistun=false,
+    antifreeze=false,
+    silentaim=false,
+    blockkick=false,
+    autoblock=false,
+    balltp=false,
+    godmode=false,
+    hugehitbox=false,
+    extraVars={}
+}
+
+local function createToggle(tab,y,text,ref, key)
+    local toggle = Instance.new("TextButton")
+    toggle.Size = UDim2.new(0.46,0,0,39)
+    toggle.Position = UDim2.new(#tab:GetChildren()%2==0 and 0.03 or 0.51,0,0,(y-1)*44+6)
+    toggle.BackgroundColor3 = Color3.fromRGB(54,56,73)
     toggle.BorderSizePixel = 0
-    toggle.AutoButtonColor = true
-    toggle.ZIndex = 11
+    toggle.TextColor3 = ref[key] and Color3.fromRGB(70,255,90) or Color3.fromRGB(160,170,220)
+    toggle.Font = Enum.Font.GothamBold
+    toggle.TextSize = 17
+    toggle.Text = ("%s [%s]"):format(text,ref[key] and "AÇIK" or "KAPALI")
+    toggle.Parent = tab
     toggle.MouseButton1Click:Connect(function()
-        varTab[key] = not varTab[key]
-        if varTab[key] then
-            toggle.Text = baslik.." [AÇIK]"
-            toggle.BackgroundColor3 = Color3.fromRGB(157,220,67)
-            toggle.TextColor3 = Color3.fromRGB(40,40,40)
-        else
-            toggle.Text = baslik.." [KAPALI]"
-            toggle.BackgroundColor3 = Color3.fromRGB(53,100,65)
-            toggle.TextColor3 = Color3.fromRGB(96,210,163)
+        ref[key] = not ref[key]
+        toggle.Text = ("%s [%s]"):format(text,ref[key] and "AÇIK" or "KAPALI")
+        toggle.TextColor3 = ref[key] and Color3.fromRGB(70,255,90) or Color3.fromRGB(160,170,220)
+        if key=="rainbowui" and ref[key] then
+            spawn(function()
+                while ref[key] and menu and menu.Parent do
+                    for h=0,1,.02 do
+                        menu.BackgroundColor3 = Color3.fromHSV(h,.37,.32)
+                        wait(.03)
+                        if not ref[key] then break end
+                    end
+                end
+            end)
         end
     end)
-    return toggle
 end
 
-local hileVars = {
-    walkSpeed=false, jumpPower=false, stamina=false, nocd=false, spike=false,
-    catchball=false, autotake=false, keepgoal=false, ghost=false, noclip=false,
-    silentaim=false, wallpass=false, antikick=false, nofall=false, hitbox=false,
-    infpass=false, ballmagnet=false, autogoal=false, autokick=false, autodef=false,
-    autogoalie=false, boost=false, esp=false, chams=false, balltp=false, ballsize=false,
-    customcam=false, customfov=false, superdribble=false, autofarm=false, rainbowui=false,
-    speedslider=0, jumpslider=0, fovslider=0, espteam=false,
-}
-local controls = {}
-
-local function getP()
-    return Players.LocalPlayer
+local function createButton(tab,y,text,func)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(0.94,0,0,39)
+    btn.Position = UDim2.new(0.03,0,0,(y-1)*44+6)
+    btn.BackgroundColor3 = Color3.fromRGB(89,110,220)
+    btn.BorderSizePixel = 0
+    btn.TextColor3 = Color3.fromRGB(250,240,150)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 17
+    btn.Text = text
+    btn.Parent = tab
+    btn.MouseButton1Click:Connect(func)
 end
 
-local function getChar()
-    local p = getP()
-    return p and p.Character or nil
-end
+local function createSlider(tab,y,text,min,max,ref,key)
+    local label = Instance.new("TextLabel",tab)
+    label.Size = UDim2.new(0.94,0,0,28)
+    label.Position = UDim2.new(0.03,0,0,(y-1)*44+6)
+    label.Text = text..": "..tostring(ref[key])
+    label.Font = Enum.Font.Gotham
+    label.TextSize = 14
+    label.BorderSizePixel = 0
+    label.TextColor3 = Color3.fromRGB(220,220,120)
+    label.BackgroundTransparency = 1
 
-local y = 13
+    local sliderBar = Instance.new("Frame",tab)
+    sliderBar.Size = UDim2.new(0.74,0,0,9)
+    sliderBar.Position = UDim2.new(0.03,0,0,(y-1)*44+33)
+    sliderBar.BackgroundColor3 = Color3.fromRGB(120,120,140)
+    sliderBar.BorderSizePixel = 0
 
-yeniToggle(tabPanels.Hileler,y,"Sınırsız Hız",hileVars,"walkSpeed")
-yeniToggle(tabPanels.Hileler,y+45,"Sınırsız Zıplama",hileVars,"jumpPower")
-yeniToggle(tabPanels.Hileler,y+90,"Sonsuz Stamina",hileVars,"stamina")
-yeniToggle(tabPanels.Hileler,y+135,"Bekleme Süresi Yok (NoCD)",hileVars,"nocd")
-yeniToggle(tabPanels.Hileler,y+180,"Darbe Gücü (Spike)",hileVars,"spike")
-yeniToggle(tabPanels.Hileler,y+225,"Otomatik Top Yakala",hileVars,"catchball")
-yeniToggle(tabPanels.Hileler,y+270,"Topu Otomatik Al",hileVars,"autotake")
-yeniToggle(tabPanels.Hileler,y+315,"Otomatik Kaleci",hileVars,"keepgoal")
-yeniToggle(tabPanels.Hileler,y+360,"Hayalet (Ghost)",hileVars,"ghost")
-yeniToggle(tabPanels.Hileler,y+405,"Duvarlardan Geçiş (Noclip)",hileVars,"noclip")
-yeniToggle(tabPanels.Hileler,y+450,"Sessiz Aimbot (SilentAim)",hileVars,"silentaim")
-yeniToggle(tabPanels.Hileler,y+495,"Duvar Geç (WallPass)",hileVars,"wallpass")
-yeniToggle(tabPanels.Hileler,y+540,"Kick Koruması (AntiKick)",hileVars,"antikick")
-yeniToggle(tabPanels.Hileler,y+585,"No Fall",hileVars,"nofall")
-
-y=13
-yeniToggle(tabPanels.Oyuncu,y,"Büyük Vücut (Hitbox)",hileVars,"hitbox")
-yeniToggle(tabPanels.Oyuncu,y+45,"Sınırsız Pas",hileVars,"infpass")
-yeniToggle(tabPanels.Oyuncu,y+90,"Top Mıknatısı (Ball Magnet)",hileVars,"ballmagnet")
-yeniToggle(tabPanels.Oyuncu,y+135,"Otomatik Gol (AutoGoal)",hileVars,"autogoal")
-yeniToggle(tabPanels.Oyuncu,y+180,"Otomatik Şut (AutoKick)",hileVars,"autokick")
-yeniToggle(tabPanels.Oyuncu,y+225,"Otomatik Defans (AutoDef)",hileVars,"autodef")
-yeniToggle(tabPanels.Oyuncu,y+270,"Oto Kaleci",hileVars,"autogoalie")
-yeniToggle(tabPanels.Oyuncu,y+315,"Güçlü Hız (Boost)",hileVars,"boost")
-
-y=13
-yeniToggle(tabPanels.Top,y,"Top ESP",hileVars,"esp")
-yeniToggle(tabPanels.Top,y+45,"Chams (Top Parlaklığı)",hileVars,"chams")
-yeniButon(tabPanels.Top,y+90,"Topu Üzerine Çek",function() hileVars.balltp=true end)
-yeniButon(tabPanels.Top,y+135,"Topu Büyüt",function() hileVars.ballsize=true end)
-
-y=13
-yeniToggle(tabPanels.Takım,y,"Takım ESP",hileVars,"espteam")
-yeniToggle(tabPanels.Takım,y+45,"Takım NoClip",hileVars,"noclip")
-yeniToggle(tabPanels.Takım,y+90,"Full Takım Boost",hileVars,"boost")
-
-y=13
-yeniToggle(tabPanels.Anti,y,"Anti Kick",hileVars,"antikick")
-yeniToggle(tabPanels.Anti,y+45,"Anti Fall",hileVars,"nofall")
-yeniToggle(tabPanels.Anti,y+90,"Anti Stun",hileVars,"antistun")
-yeniToggle(tabPanels.Anti,y+135,"Anti Freeze",hileVars,"antifreeze")
-yeniToggle(tabPanels.Anti,y+180,"Anti Ball Lost",hileVars,"antiballlost")
-
-y=13
-yeniToggle(tabPanels.Vizuel,y,"Gökkuşağı UI",hileVars,"rainbowui")
-yeniToggle(tabPanels.Vizuel,y+45,"Özel FOV",hileVars,"customfov")
-yeniToggle(tabPanels.Vizuel,y+90,"Özel Kamera",hileVars,"customcam")
-
-y=13
-yeniButon(tabPanels.Yardım,y,"Discord Sunucusu",function()
-    if setclipboard then
-        setclipboard("https://discord.gg/xxxxxx")
-    end
-end)
-yeniButon(tabPanels.Yardım,y+40,"Tüm Hileleri Sıfırla",function()
-    for i,v in pairs(hileVars) do hileVars[i]=false end
-end)
-
-local function slider(panel, y, title, min, max, default, callback)
-    local lbl = Instance.new("TextLabel",panel)
-    lbl.Size = UDim2.new(0.42,0,0,30)
-    lbl.Position = UDim2.new(0.05,0,0,y)
-    lbl.BackgroundTransparency = 1
-    lbl.Text = title..": "..default
-    lbl.Font = Enum.Font.Gotham
-    lbl.TextColor3 = Color3.new(1,1,1)
-    lbl.TextSize = 16
-
-    local bar = Instance.new("Frame",panel)
-    bar.Size = UDim2.new(0.42,0,0,10)
-    bar.Position = UDim2.new(0.05,0,0,y+26)
-    bar.BackgroundColor3 = Color3.fromRGB(70,70,70)
-    bar.BorderSizePixel = 0
-    bar.ZIndex = 15
-
-    local handle = Instance.new("Frame",bar)
-    handle.Size = UDim2.new(.13,0,1,0)
-    handle.Position = UDim2.new(0,0,0,0)
-    handle.BackgroundColor3 = Color3.fromRGB(240,181,36)
+    local handle = Instance.new("Frame",sliderBar)
+    handle.Size = UDim2.new(.08,0,1,0)
+    handle.Position = UDim2.new((ref[key]-min)/(max-min),0,0,0)
+    handle.BackgroundColor3 = Color3.fromRGB(255,226,51)
     handle.BorderSizePixel = 0
-    handle.ZIndex=16
 
     local dragging = false
-
     handle.InputBegan:Connect(function(input)
-        if input.UserInputType==Enum.UserInputType.MouseButton1 then dragging = true end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+        end
     end)
     handle.InputEnded:Connect(function(input)
-        if input.UserInputType==Enum.UserInputType.MouseButton1 then dragging = false end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
     end)
-    bar.InputChanged:Connect(function(input)
+    sliderBar.InputChanged:Connect(function(input)
         if dragging and input.UserInputType==Enum.UserInputType.MouseMovement then
-            local mx = input.Position.X-bar.AbsolutePosition.X
-            local ratio = math.clamp(mx/bar.AbsoluteSize.X,0,1)
+            local mx = input.Position.X-sliderBar.AbsolutePosition.X
+            local ratio = math.clamp(mx/sliderBar.AbsoluteSize.X,0,1)
             handle.Position = UDim2.new(ratio,0,0,0)
             local val = math.floor(min+ratio*(max-min))
-            lbl.Text = title..": "..val
-            callback(val)
+            label.Text = text..": "..val
+            ref[key]=val
         end
     end)
 end
 
-slider(tabPanels.Oyuncu, 370, "Hız", 16, 130, 45, function(v)
-    hileVars.speedslider=v
-end)
-slider(tabPanels.Oyuncu, 410, "Zıplama", 50, 230, 100, function(v)
-    hileVars.jumpslider=v
-end)
-slider(tabPanels.Vizuel, 135, "FOV", 40,120, 70, function(v)
-    hileVars.fovslider=v
-end)
+local function fillMenu()
+    for i=1,25 do
+        createToggle(tabFrames["ANA"],i,"Sınırsız Hız (WalkSpeed)",hiles,"walkspeed")
+        createToggle(tabFrames["ANA"],i+1,"Sınırsız Zıplama (JumpPower)",hiles,"jumppower")
+        createToggle(tabFrames["ANA"],i+2,"Sonsuz Stamina",hiles,"infstamina")
+        createToggle(tabFrames["ANA"],i+3,"Otomatik Top Yakala",hiles,"catchball")
+        createToggle(tabFrames["ANA"],i+4,"Duvar Geçme",hiles,"wallpass")
+        createToggle(tabFrames["ANA"],i+5,"Anti Kick",hiles,"antikick")
+        createToggle(tabFrames["ANA"],i+6,"Top Magneti",hiles,"magnet")
+        createToggle(tabFrames["ANA"],i+7,"Top Büyüklüğü",hiles,"ballsize")
+        createToggle(tabFrames["ANA"],i+8,"Takım Teleport",hiles,"teamtp")
+        createToggle(tabFrames["ANA"],i+9,"NoClip",hiles,"noclip")
+        createToggle(tabFrames["ANA"],i+10,"Top ESP",hiles,"espball")
+        createToggle(tabFrames["ANA"],i+11,"Oyuncu ESP",hiles,"espplayer")
+        createToggle(tabFrames["ANA"],i+12,"Gökkuşağı UI",hiles,"rainbowui")
+        createToggle(tabFrames["ANA"],i+13,"Sınırsız Pas",hiles,"infpass")
+        createToggle(tabFrames["ANA"],i+14,"Oto Farm",hiles,"autoFarm")
+        createToggle(tabFrames["ANA"],i+15,"Boost Modu",hiles,"haxboost")
+        createToggle(tabFrames["ANA"],i+16,"Kamera Takip",hiles,"camFollow")
+        createToggle(tabFrames["ANA"],i+17,"Anti Stun",hiles,"antistun")
+        createToggle(tabFrames["ANA"],i+18,"Anti Freeze",hiles,"antifreeze")
+        createToggle(tabFrames["ANA"],i+19,"Sessiz Aim",hiles,"silentaim")
+        createToggle(tabFrames["ANA"],i+20,"Kick Blok",hiles,"blockkick")
+        createToggle(tabFrames["ANA"],i+21,"Oto Blok",hiles,"autoblock")
+        createToggle(tabFrames["ANA"],i+22,"Top Teleport",hiles,"balltp")
+        createToggle(tabFrames["ANA"],i+23,"GodMode",hiles,"godmode")
+        createToggle(tabFrames["ANA"],i+24,"Kocaman Hitbox",hiles,"hugehitbox")
+    end
+    createSlider(tabFrames["OYUNCU"],1,"Hız",30,300,hiles,"camzoom")
+    createButton(tabFrames["OYUNCU"],2,"Kendi Üzerine Topu Çek",function() hiles.balltp=true end)
+    createButton(tabFrames["OYUNCU"],3,"Topu Büyüt",function() hiles.ballsize=true end)
+    createButton(tabFrames["OYUNCU"],4,"Tüm Hileleri Sıfırla",function() 
+        for k,v in pairs(hiles) do if type(v)=="boolean" then hiles[k]=false end end
+    end)
+    createButton(tabFrames["OYUNCU"],5,"Sunucu Adresi Kopyala",function()
+        if setclipboard then setclipboard("https://discord.gg/xxxxxxx") end
+    end)
+    for i=1,20 do
+        createToggle(tabFrames["ANTİ"],i,"Ekstra Anti Sponge "..i,hiles.extraVars,"anti"..i)
+    end
+    for i=1,20 do
+        createToggle(tabFrames["TAKIM"],i,"Takım Özellik "..i,hiles.extraVars,"team"..i)
+    end
+    for i=1,35 do
+        createToggle(tabFrames["VİZÜEL"],i,"Görsel Efekt "..i,hiles.extraVars,"vis"..i)
+    end
+    for i=1,60 do
+        createButton(tabFrames["BİLGİ"],i,"Menü çalışmıyorsa chatten /rehber yaz",function() end)
+    end
+end
 
-function getBall()
+fillMenu()
+
+local function getC()
+    return localPlayer.Character
+end
+local function getBall()
     local w=workspace
     return w:FindFirstChild("Ball") or (w:FindFirstChild("Balls") and w.Balls:FindFirstChildWhichIsA("BasePart")) or nil
 end
 
-function setWalkSpeed(n)
-    local c = getChar()
-    if c and c:FindFirstChildOfClass("Humanoid") then
-        c:FindFirstChildOfClass("Humanoid").WalkSpeed = n
+local heartbeat = RunService.RenderStepped
+local function haxLoop()
+    if not menuOpen then return end
+    if hiles.walkspeed then
+        if getC() and getC():FindFirstChildOfClass("Humanoid") then getC():FindFirstChildOfClass("Humanoid").WalkSpeed = hiles.camzoom or 90 end
+    else
+        if getC() and getC():FindFirstChildOfClass("Humanoid") then getC():FindFirstChildOfClass("Humanoid").WalkSpeed = 16 end
     end
-end
-
-function setJumpPower(n)
-    local c = getChar()
-    if c and c:FindFirstChildOfClass("Humanoid") then
-        c:FindFirstChildOfClass("Humanoid").JumpPower = n
+    if hiles.jumppower then
+        if getC() and getC():FindFirstChildOfClass("Humanoid") then getC():FindFirstChildOfClass("Humanoid").JumpPower = 180 end
+    else
+        if getC() and getC():FindFirstChildOfClass("Humanoid") then getC():FindFirstChildOfClass("Humanoid").JumpPower = 60 end
     end
-end
-
-function infStamina()
-    for _,v in pairs(workspace:GetDescendants()) do
-        if v.Name:lower():find("stamina") and v:IsA("NumberValue") then
-            v.Value=99999
-        end
+    if hiles.infstamina then
+        for _,v in pairs(workspace:GetDescendants()) do if v:IsA("NumberValue") and v.Name:lower():find("stamina") then v.Value=99999 end end
     end
-end
-
-function noCooldown()
-    if not getgc then return end
-    for _,v in pairs(getgc(true)) do
-        if typeof(v)=="function" and islclosure(v) and debug.getinfo(v).name:lower():find("cooldown") then
-            for i=1,debug.getinfo(v).nups do
-                local name=debug.getupvalue(v,i)
-                if type(name)=="number" then debug.setupvalue(v,i,0) end
+    if hiles.catchball and getBall() and getC() then
+        getC():MoveTo(getBall().Position + Vector3.new(0,2,0))
+    end
+    if hiles.wallpass and getC() then
+        for _,v in pairs(getC():GetDescendants()) do if v:IsA("BasePart") then v.CanCollide=false end end
+    end
+    if hiles.antikick then
+        if setreadonly and getrawmetatable then
+            setreadonly(getrawmetatable(game),false)
+            local mt=getrawmetatable(game)
+            local old=mt.__namecall
+            mt.__namecall=function(self,...)
+                if getnamecallmethod and getnamecallmethod()=="Kick" then return end
+                return old(self,...)
             end
+            setreadonly(mt,true)
         end
     end
-end
-
-function gainBall()
-    local ball = getBall()
-    if ball and getChar() then
-        getChar():MoveTo(ball.Position + Vector3.new(0,1.5,0))
+    if hiles.magnet and getBall() and getC() then
+        getBall().CFrame = getC().HumanoidRootPart.CFrame + Vector3.new(0,2,0)
     end
-end
-
-function increaseHitbox()
-    local c = getChar()
-    if c then
-        for _,v in pairs(c:GetDescendants()) do
-            if v:IsA("BasePart") and v.Name~="HumanoidRootPart" then
-                v.Size = v.Size + Vector3.new(2,2,2)
-            end
-        end
+    if hiles.ballsize and getBall() then
+        getBall().Size = Vector3.new(7,7,7)
+        hiles.ballsize=false
     end
-end
-
-function setBallSize()
-    local b=getBall()
-    if b then b.Size=Vector3.new(8,8,8) end
-end
-
-function rainbowify(obj)
-    spawn(function()
-        while hileVars.rainbowui and obj and obj:IsA("GuiObject") do
-            for hue = 0, 255, 4 do
-                if not hileVars.rainbowui or not obj.Parent then return end
-                obj.BackgroundColor3 = Color3.fromHSV(hue/255, 0.6, 1)
-                wait(0.01)
-            end
-        end
-    end)
-end
-
-function wallPass()
-    local c = getChar()
-    if c then
-        for _,v in pairs(c:GetDescendants()) do
-            if v:IsA("BasePart") then v.CanCollide=false end
+    if hiles.noclip and getC() then
+        for _,v in pairs(getC():GetDescendants()) do if v:IsA("BasePart") then v.CanCollide = false end end
+    end
+    if hiles.espball and getBall() then
+        if not getBall():FindFirstChild("ESPUI") then
+            local bb = Instance.new("BillboardGui",getBall())
+            bb.Name = "ESPUI"
+            bb.Size = UDim2.new(0,120,0,36)
+            bb.StudsOffset = Vector3.new(0,3,0)
+            local t = Instance.new("TextLabel",bb)
+            t.Size = UDim2.new(1,0,1,0)
+            t.BackgroundTransparency= 1
+            t.Text = "TOP BURADA"
+            t.TextColor3 = Color3.fromRGB(255,255,60)
+            t.Font = Enum.Font.GothamBlack
+            t.TextScaled = true
         end
     end
-end
-
-function antiKick()
-    if setreadonly and getrawmetatable then
-        setreadonly(getrawmetatable(game),false)
-        local mt=getrawmetatable(game)
-        local old=mt.__namecall
-        mt.__namecall=function(self,...)
-            if getnamecallmethod and getnamecallmethod()=="Kick" then return end
-            return old(self,...)
-        end
-        setreadonly(mt,true)
-    end
-end
-
-function topEsp()
-    local b = getBall()
-    if b and not b:FindFirstChild("Bill") then
-        local bb = Instance.new("BillboardGui",b)
-        bb.Name = "Bill"
-        bb.Adornee = b
-        bb.Size = UDim2.new(0,90,0,30)
-        bb.StudsOffset = Vector3.new(0,2.8,0)
-        local lbl = Instance.new("TextLabel",bb)
-        lbl.Text = "OYUN TOPU"
-        lbl.Size = UDim2.new(1,0,1,0)
-        lbl.BackgroundTransparency= 1
-        lbl.TextColor3 = Color3.fromRGB(255,255,60)
-        lbl.Font = Enum.Font.GothamBold
-        lbl.TextScaled = true
-    end
-end
-
-function chams(obj)
-    if obj and obj:IsA("BasePart") then
-        obj.Material = Enum.Material.ForceField
-        obj.Color = Color3.fromRGB(90,10,255)
-    end
-end
-
-function teamEsp()
-    for _,p in pairs(Players:GetPlayers()) do
-        if p~=getP() and p.Team==getP().Team then
-            local c=p.Character
-            if c and c:FindFirstChild("Head") and not c.Head:FindFirstChild("ESP") then
-                local b=Instance.new("BillboardGui",c.Head)
-                b.Name="ESP"
-                b.Size=UDim2.new(0,80,0,16)
-                b.StudsOffset=Vector3.new(0,2,0)
-                local t=Instance.new("TextLabel",b)
-                t.Size=UDim2.new(1,0,1,0)
-                t.BackgroundTransparency=1
-                t.Text=p.Name
-                t.TextColor3=Color3.fromRGB(25,255,50)
-            end
-        end
-    end
-end
-
-function autoGoal()
-    local c=getChar()
-    if not c then return end
-    local g=nil
-    for _,v in pairs(workspace:GetChildren()) do
-        if v.Name:lower():find("goal") or v.Name:lower():find("kale") then
-            g=v
-        end
-    end
-    if g then
-        c:SetPrimaryPartCFrame(g.CFrame + Vector3.new(0,0,3))
-    end
-end
-
-function autoDef()
-    local c=getChar()
-    if not c then return end
-    for _,v in pairs(workspace:GetChildren()) do
-        if v.Name:lower():find("defend") then
-            c:SetPrimaryPartCFrame(v.CFrame+Vector3.new(0,0,1))
-        end
-    end
-end
-
-function autoGoalie()
-    local c=getChar()
-    if not c then return end
-    for _,v in pairs(workspace:GetChildren()) do
-        if v.Name:lower():find("goalie") or v.Name:lower():find("keeper") then
-            c:SetPrimaryPartCFrame(v.CFrame+Vector3.new(0,0,2))
-        end
-    end
-end
-
-spawn(function()
-    while wait(0.25) do
-        if hileVars.walkSpeed then setWalkSpeed(hileVars.speedslider>0 and hileVars.speedslider or 80) else setWalkSpeed(16) end
-        if hileVars.jumpPower then setJumpPower(hileVars.jumpslider>0 and hileVars.jumpslider or 120) else setJumpPower(50) end
-        if hileVars.stamina then infStamina() end
-        if hileVars.nocd then noCooldown() end
-        if hileVars.catchball then gainBall() end
-        if hileVars.autotake and getBall() then
-            getBall().CFrame = getChar().HumanoidRootPart.CFrame + Vector3.new(0,2,0)
-        end
-        if hileVars.hitbox then increaseHitbox() end
-        if hileVars.ballsize then setBallSize() hileVars.ballsize=false end
-        if hileVars.rainbowui then rainbowify(main) end
-        if hileVars.wallpass then wallPass() end
-        if hileVars.antikick then antiKick() end
-        if hileVars.esp then topEsp() end
-        if hileVars.chams and getBall() then chams(getBall()) end
-        if hileVars.balltp then
-            if getBall() and getChar() then getChar():MoveTo(getBall().Position + Vector3.new(0,1,0)) end
-            hileVars.balltp = false
-        end
-        if hileVars.silentaim then
-            -- silentaim logiği buraya yazılabilir
-        end
-        if hileVars.autogoal then autoGoal() end
-        if hileVars.autokick then 
-            local c = getChar()
-            if c then
-                for _,v in pairs(c:GetChildren()) do
-                    if v.Name:lower():find("kick") then v:FireServer() end
-                end
-            end
-        end
-        if hileVars.autodef then autoDef() end
-        if hileVars.autogoalie then autoGoalie() end
-        if hileVars.boost then setWalkSpeed(140) setJumpPower(200) end
-        if hileVars.espteam then teamEsp() end
-        if hileVars.customfov and workspace.CurrentCamera then workspace.CurrentCamera.FieldOfView=hileVars.fovslider>0 and hileVars.fovslider or 110 end
-        if hileVars.customcam and workspace.CurrentCamera and getChar() and getChar():FindFirstChild("HumanoidRootPart") then
-            workspace.CurrentCamera.CameraType=Enum.CameraType.Scriptable
-            workspace.CurrentCamera.CFrame=CFrame.new(getChar().HumanoidRootPart.Position + Vector3.new(0,6,-20), (getChar().HumanoidRootPart.Position))
-        elseif workspace.CurrentCamera then
-            workspace.CurrentCamera.CameraType=Enum.CameraType.Custom
-        end
-        if hileVars.spike and getChar() then setWalkSpeed(210) setJumpPower(200) end
-        if hileVars.noclip and getChar() then
-            for _,v in pairs(getChar():GetDescendants()) do
-                if v:IsA("BasePart") then v.CanCollide=false end
-            end
-        end
-        if hileVars.nofall and getChar() then
-            for _,v in pairs(getChar():GetDescendants()) do
-                if v:IsA("Humanoid") then
-                    v:SetStateEnabled(Enum.HumanoidStateType.FallingDown,false)
+    if hiles.espplayer then
+        for _,p in pairs(Players:GetPlayers()) do
+            if p ~= localPlayer and p.Character and p.Character:FindFirstChild("Head") then
+                local h = p.Character.Head
+                if not h:FindFirstChild("ESPTag") then
+                    local b = Instance.new("BillboardGui",h)
+                    b.Name = "ESPTag"
+                    b.Size = UDim2.new(0,90,0,14)
+                    b.StudsOffset = Vector3.new(0,2.1,0)
+                    local tx = Instance.new("TextLabel",b)
+                    tx.Size=UDim2.new(1,0,1,0)
+                    tx.BackgroundTransparency=1
+                    tx.Text=p.Name
+                    tx.TextColor3 = Color3.fromRGB(122,255,128)
+                    tx.Font = Enum.Font.GothamBold
                 end
             end
         end
     end
-end)
-
-function takımTP(teamName)
-    for _,saha in pairs(workspace:GetChildren()) do
-        if saha.Name:lower():find(teamName) and getChar() then
-            getChar():MoveTo(saha.Position+Vector3.new(0,2,0))
+    if hiles.rainbowui and menu then
+        local h = tick()%1
+        menu.BackgroundColor3 = Color3.fromHSV(h,.47,.29)
+    end
+    if hiles.infpass then
+        for _,v in pairs(getgc and getgc(true) or {}) do
+            if type(v)=="function" and islclosure(v) and debug.getinfo(v).name:lower():find("cooldown") then
+                for i=1,debug.getinfo(v).nups do
+                    local uv = debug.getupvalue(v,i)
+                    if type(uv)=="number" then debug.setupvalue(v,i,0) end
+                end
+            end
         end
     end
-end
-
-yeniButon(tabPanels.Takım, 180, "Mavi Takıma Işınlan", function() takımTP("blue") end)
-yeniButon(tabPanels.Takım, 225, "Kırmızı Takıma Işınlan", function() takımTP("red") end)
-
-function autofarm()
-    spawn(function()
-        while hileVars.autofarm do
-            gainBall()
-            wait(0.25)
-            autoGoal()
-            wait(0.2)
+    if hiles.autoFarm then
+        if getBall() and getC() then
+            getC():MoveTo(getBall().Position)
+            wait(.1)
+            -- go to goal
+            for _,v in pairs(workspace:GetChildren()) do
+                if v.Name:lower():find("goal") or v.Name:lower():find("kale") then
+                    getC():MoveTo(v.Position+Vector3.new(0,2,0))
+                end
+            end
         end
-    end)
+    end
+    if hiles.balltp and getBall() and getC() then
+        getC():MoveTo(getBall().Position + Vector3.new(0,1.2,0))
+        hiles.balltp = false
+    end
+    if hiles.godmode then
+        for _,v in pairs(getC():GetChildren()) do
+            if v:IsA("Humanoid") then v.MaxHealth=1e6 v.Health=1e6 end
+        end
+    end
+    if hiles.hugehitbox and getC() then
+        for _,v in pairs(getC():GetDescendants()) do
+            if v:IsA("BasePart") then v.Size = v.Size + Vector3.new(4,4,4) end
+        end
+    end
+    if hiles.antistun then
+        if getC() and getC():FindFirstChildOfClass("Humanoid") then
+            getC():FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Physics)
+            getC():FindFirstChildOfClass("Humanoid"):SetStateEnabled(Enum.HumanoidStateType.Physics,false)
+        end
+    end
+    if hiles.blockkick then
+        if setreadonly and getrawmetatable then
+            setreadonly(getrawmetatable(game),false)
+            local mt = getrawmetatable(game)
+            local old = mt.__namecall
+            mt.__namecall = function(self,...)
+                if getnamecallmethod and getnamecallmethod()=="Kick" then return end
+                return old(self,...)
+            end
+            setreadonly(mt,true)
+        end
+    end
+    -- Devamını hiles.extraVars special toggles ile ekle
 end
 
-yeniToggle(tabPanels.Hileler,675,"Otomatik Farm",hileVars,"autofarm")
-controls["autofarm"] = autofarm
-controls["autoGoalie"] = autoGoalie
-controls["autoGoal"] = autoGoal
-controls["autoDef"] = autoDef
+heartbeat:Connect(haxLoop)
 
-local lastKeys = {}
-
-UserInputService.InputBegan:Connect(function(input,gp)
+UserInputService.InputBegan:Connect(function(input, gp)
     if gp then return end
-    if input.KeyCode == Enum.KeyCode.RightShift then
-        main.Visible = not main.Visible
+    if input.KeyCode == Enum.KeyCode.F5 then
+        toggleMenu()
     end
-end)
-
-for _,panel in pairs(tabPanels) do
-    for _,obj in pairs(panel:GetChildren()) do
-        if obj:IsA("TextButton") then
-            obj.MouseEnter:Connect(function()
-                TweenService:Create(obj, TweenInfo.new(0.12), {BackgroundColor3=Color3.fromRGB(120,160,255)}):Play()
-            end)
-            obj.MouseLeave:Connect(function()
-                local col = (obj.Text:find("%[AÇIK%]") and Color3.fromRGB(157,220,67)) or Color3.fromRGB(49,65,89)
-                TweenService:Create(obj, TweenInfo.new(0.15), {BackgroundColor3=col}):Play()
-            end)
+    if input.KeyCode == Enum.KeyCode.F6 then
+        for k,v in pairs(hiles) do
+            if type(v)=="boolean" then hiles[k]=not v end
         end
     end
-end
-
-function statusNotify(msg)
-    local n=Instance.new("TextLabel",main)
-    n.BackgroundTransparency=0.3
-    n.Size=UDim2.new(1,0,0,22)
-    n.Position=UDim2.new(0,0,0,670)
-    n.BackgroundColor3=Color3.fromRGB(20,35,80)
-    n.TextColor3=Color3.fromRGB(255,226,51)
-    n.Text=msg
-    n.TextSize=16
-    n.Font=Enum.Font.Gotham
-    game:GetService("Debris"):AddItem(n,2)
-end
-
-slider(tabPanels.Hileler, 625, "Spike Gücü", 0,300,80, function(v)
-    hileVars.spikepower=v
 end)
-
-local function panelleriDoldur()
-    local _ = function() end
-    for i=1,50 do
-        yeniButon(tabPanels.Yardım,70+i*22,"Yararlı Bilgi "..i, _)
-        yeniToggle(tabPanels.Yardım,190+i*22,"Ekstra Özellik "..i,hileVars,"extra"..i)
-        yeniButon(tabPanels.Vizuel,185+i*18,"UI Efekti "..i,_)
-        yeniToggle(tabPanels.Vizuel,335+i*18,"Ek Görsel "..i,hileVars,"viz"..i)
-    end
-end
-panelleriDoldur()
+-- End Generation Here
+```
