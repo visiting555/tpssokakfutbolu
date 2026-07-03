@@ -1,0 +1,152 @@
+local gui = Instance.new("ScreenGui")
+gui.Name = "TPSSokakFutboluHile"
+gui.ResetOnSpawn = false
+gui.Parent = game.CoreGui
+
+local frame = Instance.new("Frame", gui)
+frame.Size = UDim2.new(0,320,0,500)
+frame.Position = UDim2.new(0,60,0,110)
+frame.BackgroundColor3 = Color3.fromRGB(30,30,30)
+frame.BorderSizePixel = 2
+frame.Active = true
+frame.Draggable = true
+
+local title = Instance.new("TextLabel", frame)
+title.Text = "TPS Sokak Futbolu Hile Menüsü"
+title.Size = UDim2.new(1,0,0,40)
+title.BackgroundColor3 = Color3.fromRGB(24,24,24)
+title.TextColor3 = Color3.new(1,1,0)
+title.Font = Enum.Font.SourceSansBold
+title.TextSize = 22
+
+local butonY = 55
+local butonAralik = 45
+local butonTablo = {}
+
+local function butonOlustur(isim,callback)
+    local btn = Instance.new("TextButton", frame)
+    btn.Size = UDim2.new(1,-30,0,40)
+    btn.Position = UDim2.new(0,15,0,butonY)
+    btn.BackgroundColor3 = Color3.fromRGB(53,53,53)
+    btn.TextColor3 = Color3.new(0,1,1)
+    btn.Font = Enum.Font.SourceSans
+    btn.TextSize = 17
+    btn.Text = isim
+    btn.MouseButton1Click:Connect(callback)
+    butonY = butonY + butonAralik
+    table.insert(butonTablo,btn)
+    return btn
+end
+
+local acikHileler = {
+    speed=false,
+    jump=false,
+    nocd=false,
+    autotop=false,
+    wallpass=false,
+    teleport=false,
+    antikick=false,
+    fullstamina=false,
+    autogoal=false,
+}
+
+function aktifKontrol()
+    for h,v in pairs(acikHileler) do
+        if h=="speed" and v then
+            local p=game.Players.LocalPlayer if p and p.Character and p.Character:FindFirstChild("Humanoid") then p.Character.Humanoid.WalkSpeed=80 end
+        end
+        if h=="jump" and v then
+            local p=game.Players.LocalPlayer if p and p.Character and p.Character:FindFirstChild("Humanoid") then p.Character.Humanoid.JumpPower=180 end
+        end
+        if h=="nocd" and v then
+            for _,v2 in pairs(getgc(true)) do
+                if typeof(v2)=="function" and islclosure(v2) and debug.getinfo(v2).name=="getCooldown" then
+                    debug.setupvalue(v2,1,0)
+                end
+            end
+        end
+        if h=="autotop" and v then
+            local b=workspace:FindFirstChild("Balls") or workspace:FindFirstChild("Ball")
+            if b then
+                for _,a in pairs(b:GetChildren()) do
+                    a.CFrame=game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame+Vector3.new(0,2,0)
+                end
+            end
+        end
+        if h=="wallpass" and v then
+            local p=game.Players.LocalPlayer
+            if p and p.Character and p.Character:FindFirstChild("Head") then
+                for _,v3 in pairs(p.Character:GetDescendants()) do
+                    if v3:IsA("BasePart") then v3.CanCollide=false end
+                end
+            end
+        end
+        if h=="teleport" and v then
+            local b=workspace:FindFirstChild("Balls") or workspace:FindFirstChild("Ball")
+            if b then
+                for _,a in pairs(b:GetChildren()) do
+                    game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame=a.CFrame+Vector3.new(0,2,0)
+                end
+            end
+            acikHileler.teleport=false
+        end
+        if h=="antikick" and v then
+            setreadonly(getrawmetatable(game),false)
+            local namecall=game.MetaTable.__namecall
+            game.MetaTable.__namecall=function(self,...)
+                local method=getnamecallmethod()
+                if method=="Kick" then return end
+                return namecall(self,...)
+            end
+            setreadonly(getrawmetatable(game),true)
+        end
+        if h=="fullstamina" and v then
+            local p=game.Players.LocalPlayer
+            if p and p.PlayerGui then
+                local st=m or p.PlayerGui:FindFirstChild("Stamina")
+                if st then st.MaxValue=999999 st.Value=999999 end
+            end
+        end
+        if h=="autogoal" and v then
+            local hrp=game.Players.LocalPlayer.Character.HumanoidRootPart
+            for _,g in pairs(workspace:GetChildren()) do
+                if g.Name:lower():find("goal") or g.Name:lower():find("kale") then
+                    hrp.CFrame=g.CFrame+Vector3.new(0,0,-2)
+                    break
+                end
+            end
+            acikHileler.autogoal=false
+        end
+    end
+end
+
+spawn(function()
+    while wait(0.5) do aktifKontrol() end
+end)
+
+butonOlustur("Hız Hilesi [Aç/Kapat]",function() acikHileler.speed=not acikHileler.speed end)
+butonOlustur("Yüksek Zıplama [Aç/Kapat]",function() acikHileler.jump=not acikHileler.jump end)
+butonOlustur("Süre Bekleme Hilesi/NoCD [Aç/Kapat]",function() acikHileler.nocd=not acikHileler.nocd end)
+butonOlustur("Topu Üzerine Çek [Basınca]",function() acikHileler.teleport=true end)
+butonOlustur("Topu Otomatik Üzerine Çek [Aç/Kapat]",function() acikHileler.autotop=not acikHileler.autotop end)
+butonOlustur("Duvarlardan Geç [Aç/Kapat]",function() acikHileler.wallpass=not acikHileler.wallpass end)
+butonOlustur("Anti Kick [Aç/Kapat]",function() acikHileler.antikick=not acikHileler.antikick end)
+butonOlustur("Full Stamina [Aç/Kapat]",function() acikHileler.fullstamina=not acikHileler.fullstamina end)
+butonOlustur("Kale Önüne Işınlan (AutoGoal)",function() acikHileler.autogoal=true end)
+butonOlustur("Varsayılana Sıfırla",function()
+    acikHileler={speed=false,jump=false,nocd=false,autotop=false,wallpass=false,teleport=false,antikick=false,fullstamina=false,autogoal=false}
+    local p=game.Players.LocalPlayer
+    if p and p.Character and p.Character:FindFirstChild("Humanoid") then
+        p.Character.Humanoid.WalkSpeed=16 p.Character.Humanoid.JumpPower=50
+    end
+end)
+
+local cikisBtn = Instance.new("TextButton",frame)
+cikisBtn.Size = UDim2.new(0,110,0,36)
+cikisBtn.Position = UDim2.new(1,-125,1,-45)
+cikisBtn.BackgroundColor3 = Color3.fromRGB(180,35,35)
+cikisBtn.Font = Enum.Font.SourceSansBold
+cikisBtn.TextColor3 = Color3.new(1,1,1)
+cikisBtn.TextSize = 16
+cikisBtn.Text = "Kapat [X]"
+cikisBtn.MouseButton1Click:Connect(function() gui:Destroy() end)
