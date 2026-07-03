@@ -1,655 +1,651 @@
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
-local Lighting = game:GetService("Lighting")
+local StarterGui = game:GetService("StarterGui")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
+local Lighting = game:GetService("Lighting")
+
 local localPlayer = Players.LocalPlayer
 
-local function getParent()
-    local playerGui = localPlayer and localPlayer:FindFirstChildOfClass("PlayerGui")
-    if playerGui then
-        return playerGui
-    end
+local function GetGuiParent()
     if syn and syn.protect_gui then
-        local gui = Instance.new("ScreenGui")
-        syn.protect_gui(gui)
-        return gui
+        local sg = Instance.new("ScreenGui")
+        pcall(function() syn.protect_gui(sg) end)
+        return sg
     end
-    if pcall(function() return CoreGui end) then
-        return CoreGui
+    if gethui then
+        return gethui()
     end
-    return game
+    if localPlayer and localPlayer:FindFirstChildOfClass("PlayerGui") then
+        return localPlayer:FindFirstChildOfClass("PlayerGui")
+    end
+    return CoreGui
 end
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "SokakFutboluMENUV2"
+gui.Name = "TPSFutbolHileMenu_Main"
 gui.IgnoreGuiInset = true
 gui.ResetOnSpawn = false
-gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
-gui.Parent = getParent()
 gui.Enabled = true
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.Parent = GetGuiParent()
 
-local menuOpen = true
+local menuFrame = Instance.new("Frame")
+menuFrame.Name = "AnaHileMenu"
+menuFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+menuFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+menuFrame.Size = UDim2.new(0, 690, 0, 550)
+menuFrame.BackgroundColor3 = Color3.fromRGB(31, 33, 39)
+menuFrame.BorderSizePixel = 0
+menuFrame.Parent = gui
 
-local function toggleMenu()
-    menuOpen = not menuOpen
-    gui.Enabled = menuOpen
-end
-
-local dragData = {dragging = false, dragInput = nil, start = nil, startPos = nil}
-local function dragify(frame)
-    frame.Active = true
-    frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 and not dragData.dragging then
-            dragData.dragging = true
-            dragData.start = Vector2.new(input.Position.X, input.Position.Y)
-            dragData.startPos = frame.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragData.dragging = false
-                end
-            end)
-        end
-    end)
-    frame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            dragData.dragInput = input
-        end
-    end)
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragData.dragInput and dragData.dragging then
-            local delta = Vector2.new(input.Position.X, input.Position.Y) - dragData.start
-            frame.Position = UDim2.new(
-                dragData.startPos.X.Scale, dragData.startPos.X.Offset + delta.X,
-                dragData.startPos.Y.Scale, dragData.startPos.Y.Offset + delta.Y
-            )
-        end
-    end)
-end
-
-local menu = Instance.new("Frame")
-menu.Name = "Menu"
-menu.Parent = gui
-menu.AnchorPoint = Vector2.new(0.5,0.5)
-menu.Position = UDim2.new(0.5,0,0.5,0)
-menu.Size = UDim2.new(0,500,0,620)
-menu.BackgroundColor3 = Color3.fromRGB(33,34,46)
-menu.BorderSizePixel = 0
-menu.Visible = true
-menu.Active = true
-
-dragify(menu)
-
-local header = Instance.new("Frame")
-header.Name = "Header"
-header.Parent = menu
-header.Size = UDim2.new(1,0,0,50)
-header.BackgroundColor3 = Color3.fromRGB(24,48,96)
-header.BorderSizePixel = 0
+local headerFrame = Instance.new("Frame")
+headerFrame.Name = "Header"
+headerFrame.Size = UDim2.new(1, 0, 0, 50)
+headerFrame.BackgroundColor3 = Color3.fromRGB(58, 98, 180)
+headerFrame.Parent = menuFrame
 
 local headerTitle = Instance.new("TextLabel")
-headerTitle.Parent = header
-headerTitle.Size = UDim2.new(1,0,1,0)
+headerTitle.Name = "Baslik"
+headerTitle.Size = UDim2.new(0.8, 0, 1, 0)
+headerTitle.Position = UDim2.new(0, 16, 0, 0)
 headerTitle.BackgroundTransparency = 1
-headerTitle.Text = "Tps Sokak Futbolu Menü V2"
-headerTitle.TextColor3 = Color3.fromRGB(144,255,99)
-headerTitle.Font = Enum.Font.GothamBlack
+headerTitle.Text = "Sokak Futbolu TPS Hile Menü v4"
+headerTitle.TextColor3 = Color3.fromRGB(239, 255, 123)
+headerTitle.Font = Enum.Font.FredokaOne
 headerTitle.TextScaled = true
-headerTitle.TextStrokeTransparency = 0.6
+headerTitle.TextXAlignment = Enum.TextXAlignment.Left
+headerTitle.Parent = headerFrame
 
-local closeButton = Instance.new("TextButton")
-closeButton.Parent = header
-closeButton.Size = UDim2.new(0,56,1,0)
-closeButton.Position = UDim2.new(1,-56,0,0)
-closeButton.BackgroundColor3 = Color3.fromRGB(160,40,60)
-closeButton.TextColor3 = Color3.fromRGB(255,255,255)
-closeButton.Text = "X"
-closeButton.Font = Enum.Font.GothamBold
-closeButton.TextScaled = true
-closeButton.AutoButtonColor = true
-closeButton.BorderSizePixel = 0
-closeButton.ZIndex = 2
-closeButton.MouseButton1Click:Connect(function()
+local closeBtn = Instance.new("TextButton")
+closeBtn.Name = "Kapat"
+closeBtn.Size = UDim2.new(0, 46, 1, 0)
+closeBtn.Position = UDim2.new(1, -50, 0, 0)
+closeBtn.BackgroundColor3 = Color3.fromRGB(222, 77, 77)
+closeBtn.Text = "X"
+closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeBtn.TextScaled = true
+closeBtn.Font = Enum.Font.FredokaOne
+closeBtn.AutoButtonColor = true
+closeBtn.BorderSizePixel = 0
+closeBtn.Parent = headerFrame
+closeBtn.MouseButton1Click:Connect(function()
     gui.Enabled = false
 end)
 
-local Tabs = {}
-local TABNAMES = {
-    "GENEL", "OYUNCU", "TOP", "TAKIM", "ANTİ", "VİZÜEL", "EKSTRA", "BİLGİ", "SİSTEM"
+local dragging = false
+local dragOffset
+headerFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragOffset = input.Position - menuFrame.Position
+    end
+end)
+headerFrame.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        menuFrame.Position = UDim2.new(0, input.Position.X - dragOffset.X, 0, input.Position.Y - dragOffset.Y)
+    end
+end)
+
+local TabNames = {
+    "GENEL",
+    "OYUNCU",
+    "TOP",
+    "ESP",
+    "TAKIM",
+    "ANTİ",
+    "EXTRA",
+    "BİLGİ",
+    "SİSTEM"
 }
-local SelectedTab = "GENEL"
+local SelectedTab = TabNames[1]
+local TabButtons = {}
+local TabFrames = {}
 
 local tabBar = Instance.new("Frame")
-tabBar.Name = "TabBar"
-tabBar.Parent = menu
-tabBar.Size = UDim2.new(1,0,0,38)
-tabBar.Position = UDim2.new(0,0,0,50)
-tabBar.BackgroundColor3 = Color3.fromRGB(31,39,52)
+tabBar.Name = "SekmeBar"
+tabBar.Size = UDim2.new(1, 0, 0, 38)
+tabBar.Position = UDim2.new(0, 0, 0, 50)
+tabBar.BackgroundColor3 = Color3.fromRGB(40,44,56)
 tabBar.BorderSizePixel = 0
+tabBar.Parent = menuFrame
 
-local btns = {}
-
-for i,tabName in ipairs(TABNAMES) do
+for i, tab in ipairs(TabNames) do
     local btn = Instance.new("TextButton")
+    btn.Name = tab .. "_TabBtn"
+    btn.Size = UDim2.new(1/#TabNames, -2, 1, 0)
+    btn.Position = UDim2.new((i - 1) / #TabNames, i == 1 and 2 or 0, 0, 0)
+    btn.Text = tab
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 15
+    btn.TextColor3 = (tab == SelectedTab) and Color3.fromRGB(233,255,123) or Color3.fromRGB(210,210,210)
+    btn.BackgroundColor3 = (tab == SelectedTab) and Color3.fromRGB(59,197,255) or Color3.fromRGB(31,33,39)
+    btn.BorderSizePixel = 0
+    btn.AutoButtonColor = true
     btn.Parent = tabBar
-    btn.Name = tabName.."_Btn"
-    btn.Size = UDim2.new(1/#TABNAMES,0,1,0)
-    btn.Position = UDim2.new((i-1)/#TABNAMES,0,0,0)
-    btn.BorderSizePixel = 0
-    btn.Text = tabName
-    btn.AutoButtonColor = true
-    btn.TextColor3 = (tabName == SelectedTab) and Color3.fromRGB(211,239,132) or Color3.fromRGB(228,228,228)
-    btn.BackgroundColor3 = (tabName == SelectedTab) and Color3.fromRGB(59,140,249) or Color3.fromRGB(25,27,36)
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 15
-    btns[tabName] = btn
+    TabButtons[tab] = btn
+
+    local tabFrame = Instance.new("ScrollingFrame")
+    tabFrame.Name = tab .. "_Frame"
+    tabFrame.Size = UDim2.new(1, 0, 1, -92)
+    tabFrame.Position = UDim2.new(0, 0, 0, 90)
+    tabFrame.BackgroundTransparency = 1
+    tabFrame.BorderSizePixel = 0
+    tabFrame.ScrollBarThickness = 7
+    tabFrame.CanvasSize = UDim2.new(0, 0, 3, 0)
+    tabFrame.Visible = tab == SelectedTab
+    tabFrame.Parent = menuFrame
+    TabFrames[tab] = tabFrame
+
     btn.MouseButton1Click:Connect(function()
-        for n,button in pairs(btns) do
-            button.BackgroundColor3 = (tabName == n) and Color3.fromRGB(59,140,249) or Color3.fromRGB(25,27,36)
-            button.TextColor3      = (tabName == n) and Color3.fromRGB(211,239,132) or Color3.fromRGB(228,228,228)
+        for name,button in pairs(TabButtons) do
+            local selected = (name == tab)
+            button.TextColor3 = selected and Color3.fromRGB(233,255,123) or Color3.fromRGB(210,210,210)
+            button.BackgroundColor3 = selected and Color3.fromRGB(59,197,255) or Color3.fromRGB(31,33,39)
         end
-        for n,fr in pairs(Tabs) do
-            fr.Visible = n==tabName
+        for name,frame in pairs(TabFrames) do
+            frame.Visible = name == tab
         end
-        SelectedTab = tabName
+        SelectedTab = tab
     end)
 end
 
-for i,tabName in ipairs(TABNAMES) do
-    local scroll = Instance.new("ScrollingFrame", menu)
-    scroll.Size = UDim2.new(1,0,1,-88)
-    scroll.Position = UDim2.new(0,0,0,88)
-    scroll.Name = tabName.."_Frame"
-    scroll.BackgroundTransparency = 1
-    scroll.BorderSizePixel = 0
-    scroll.ScrollBarThickness = 6
-    scroll.CanvasSize = UDim2.new(0,0,5,0)
-    scroll.Visible = (tabName == SelectedTab)
-    Tabs[tabName] = scroll
-end
-
-local hiles = {
-    walkspeed = false,
-    jumppower = false,
-    infstamina = false,
-    catchball = false,
-    wallpass = false,
-    antikick = false,
-    magnet = false,
-    ballsize = false,
-    teamtp = false,
+local hileVars = {
+    walkspeed = 24,
+    jumppower = 60,
+    sonsuzstamina = false,
     noclip = false,
-    espball = false,
-    espplayer = false,
-    rainbowui = false,
+    duvargec = false,
+    antikick = false,
+    magnettop = false,
     infpass = false,
-    autoFarm = false,
-    camzoom = 22,
-    haxboost = false,
-    camFollow = false,
-    antistun = false,
-    antifreeze = false,
-    silentaim = false,
+    otoblok = false,
+    toplumesp = false,
+    oyuncuesp = false,
+    rainbowui = false,
+    infjump = false,
+    topbuyut = false,
+    takimtple = false,
+    teleport = false,
+    camlock = false,
     blockkick = false,
-    autoblock = false,
-    balltp = false,
-    godmode = false,
-    hugehitbox = false,
-    autoGoal = false,
-    freezeOthers = false,
-    fakeLag = false,
-    fakePing = false,
     gravity = false,
-    extraVars = {},
-    spawnBall = false,
-    applyGecici = false, -- Example for more options
-    antiTackle = false,
-    staminaFreeze = false,
-    speedHack = false,
-    ultraVision = false,
-    teleportOpp = false,
+    fov = 70,
+    killAura = false,
+    autoFarm = false,
+    godmode = false,
+    supervision = false,
+    antistun = false,
+    stunfreeze = false,
+    fakeLag = false,
+    topkaybet = false,
+    autotakim = false,
+    kutuhin = false,
+    camzoom = 18,
+    topdeposu = false,
+    otoGol = false,
+    bossmod = false,
+    hilepanel = false,
+    autoskill = false,
+    tpshack = false,
+    powerkick = false,
 }
+local ekVars = {}
 
-local function createToggle(tab, row, text, ref, key)
-    local tgl = Instance.new("TextButton", tab)
-    tgl.Name = "Tgl_"..(key or #tab:GetChildren())
-    tgl.Size = UDim2.new(0.48,0,0,34)
-    tgl.Position = UDim2.new((row%2==1) and 0.02 or 0.50, 0, 0, math.floor((row-1)/2)*37+8)
-    tgl.BackgroundColor3 = Color3.fromRGB(52,54,73)
-    tgl.BorderSizePixel = 0
-    tgl.TextColor3 = ref[key] and Color3.fromRGB(80,255,98) or Color3.fromRGB(195,195,240)
-    tgl.Font = Enum.Font.GothamBold
-    tgl.TextSize = 15
-    tgl.Text = ("%s [%s]"):format(text, ref[key] and "AÇIK" or "KAPALI")
-    tgl.AutoButtonColor = true
-    tgl.MouseButton1Click:Connect(function()
-        ref[key] = not ref[key]
-        tgl.Text = ("%s [%s]"):format(text, ref[key] and "AÇIK" or "KAPALI")
-        tgl.TextColor3 = ref[key] and Color3.fromRGB(80,255,98) or Color3.fromRGB(195,195,240)
-        if key == "rainbowui" and ref[key] then
-            spawn(function()
-                while ref[key] and menu and menu.Parent do
-                    for h=0,1,0.009 do
-                        menu.BackgroundColor3 = Color3.fromHSV(h,0.39,0.33)
-                        wait(0.012)
-                        if not ref[key] then break end
-                    end
-                end
-                menu.BackgroundColor3 = Color3.fromRGB(33,34,46)
-            end)
-        end
+local function ToggleBtn(tab, row, label, props, key)
+    local btn = Instance.new("TextButton")
+    btn.Name = "Toggle_"..key
+    btn.Size = UDim2.new(0.465,0,0,36)
+    btn.Position = UDim2.new((row%2==1 and 0.025 or 0.51),0,0,math.floor((row-1)/2)*41+6)
+    btn.BackgroundColor3 = props[key] and Color3.fromRGB(120,255,99) or Color3.fromRGB(46,46,70)
+    btn.TextColor3 = props[key] and Color3.fromRGB(41,39,39) or Color3.fromRGB(192,255,200)
+    btn.Font = Enum.Font.GothamBlack
+    btn.TextSize = 15
+    btn.Text = ("%s [%s]"):format(label,props[key] and "AÇIK" or "KAPALI")
+    btn.Parent = TabFrames[tab]
+    btn.MouseButton1Click:Connect(function()
+        props[key] = not props[key]
+        btn.Text = ("%s [%s]"):format(label,props[key] and "AÇIK" or "KAPALI")
+        btn.BackgroundColor3 = props[key] and Color3.fromRGB(120,255,99) or Color3.fromRGB(46,46,70)
+        btn.TextColor3 = props[key] and Color3.fromRGB(41,39,39) or Color3.fromRGB(192,255,200)
     end)
 end
-
-local function createButton(tab, row, text, fn)
-    local btn = Instance.new("TextButton", tab)
-    btn.Name = "Btn_"..string.gsub(text," ","_")
-    btn.Size = UDim2.new(0.95,0,0,34)
-    btn.Position = UDim2.new(0.025,0,0,(row-1)*37+8)
-    btn.BackgroundColor3 = Color3.fromRGB(109,149,189)
-    btn.TextColor3 = Color3.fromRGB(255,255,200)
-    btn.Font = Enum.Font.GothamBold
-    btn.Text = text
-    btn.TextSize = 15
-    btn.AutoButtonColor = true
-    btn.BorderSizePixel = 0
-    btn.MouseButton1Click:Connect(fn)
-end
-
-local function createSlider(tab, row, text, min, max, ref, key)
-    local label = Instance.new("TextLabel", tab)
-    label.Position = UDim2.new(0.028,0,0,((row-1)*45+7))
-    label.Size = UDim2.new(0.94,0,0,19)
+local function ValueSlider(tab, row, text, min, max, prop, key)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(0.68,0,0,18)
+    label.Position = UDim2.new(0.032,0,0,((row-1)*40 +4))
     label.BackgroundTransparency = 1
     label.Font = Enum.Font.GothamBold
     label.TextColor3 = Color3.fromRGB(210,210,120)
-    label.TextSize = 13
-    label.Text = text..": "..tostring(ref[key])
+    label.TextSize = 12
+    label.Text = ("%s : %s"):format(text,prop[key])
+    label.Parent = TabFrames[tab]
 
-    local bar = Instance.new("Frame", tab)
-    bar.Position = UDim2.new(0.048,0,0,((row-1)*45+23))
-    bar.Size = UDim2.new(0.74,0,0,10)
-    bar.BackgroundColor3 = Color3.fromRGB(85,85,110)
-    bar.BorderSizePixel = 0
+    local slider = Instance.new("Frame")
+    slider.Position=UDim2.new(0.02,0,0,((row-1)*40+20))
+    slider.Size=UDim2.new(0.8,0,0,13)
+    slider.BackgroundColor3=Color3.fromRGB(95,132,198)
+    slider.BorderSizePixel=0
+    slider.Parent=TabFrames[tab]
 
-    local handle = Instance.new("Frame", bar)
-    handle.Position = UDim2.new((ref[key]-min)/(max-min),0,0,0)
-    handle.Size = UDim2.new(.14,0,1,0)
-    handle.BackgroundColor3 = Color3.fromRGB(255,240,70)
-    handle.BorderSizePixel = 0
+    local slideBar = Instance.new("Frame")
+    slideBar.Size=UDim2.new((prop[key]-min)/(max-min),0,1,0)
+    slideBar.Position=UDim2.new(0,0,0,0)
+    slideBar.BackgroundColor3=Color3.fromRGB(237,219,82)
+    slideBar.BorderSizePixel=0
+    slideBar.Parent=slider
 
-    local dragging = false
-    handle.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging=true end
+    local drag = false
+    slider.InputBegan:Connect(function(input)
+        if input.UserInputType==Enum.UserInputType.MouseButton1 then drag=true end
     end)
-    handle.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging=false end
+    slider.InputEnded:Connect(function(input)
+        if input.UserInputType==Enum.UserInputType.MouseButton1 then drag=false end
     end)
-    bar.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local mx = input.Position.X - bar.AbsolutePosition.X
-            local ratio = math.clamp(mx/bar.AbsoluteSize.X,0,1)
-            handle.Position = UDim2.new(ratio,0,0,0)
-            local val = math.floor(min+ratio*(max-min))
-            label.Text = text..": "..val
-            ref[key] = val
+    slider.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement and drag then
+            local mx = input.Position.X - slider.AbsolutePosition.X
+            local pct = math.clamp(mx/slider.AbsoluteSize.X,0,1)
+            slideBar.Size=UDim2.new(pct,0,1,0)
+            local val=math.floor(min + pct*(max-min))
+            label.Text=("%s : %s"):format(text,val)
+            prop[key]=val
         end
     end)
 end
 
-local function fillMenu()
-    local genel = {
-        {"Sınırsız Hız", "walkspeed"},
-        {"Sınırsız Zıplama", "jumppower"},
-        {"Sonsuz Stamina", "infstamina"},
-        {"Oto Top Yakala", "catchball"},
-        {"Duvar Geçiş", "wallpass"},
-        {"Anti-Kick", "antikick"},
-        {"Top Magneti", "magnet"},
-        {"Top Büyüt", "ballsize"},
-        {"Takım TP", "teamtp"},
-        {"NoClip", "noclip"},
-        {"Top ESP", "espball"},
-        {"Oyuncu ESP", "espplayer"},
-        {"Rainbow UI", "rainbowui"},
-        {"Sınırsız Pas", "infpass"},
-        {"Oto Farm", "autoFarm"},
-        {"Boost", "haxboost"},
-        {"Kamera Takibi", "camFollow"},
-        {"Anti Stun", "antistun"},
-        {"Anti Freeze", "antifreeze"},
-        {"Sessiz Aim", "silentaim"},
-        {"Kick Blok", "blockkick"},
-        {"Oto Blok", "autoblock"},
-        {"Top TP", "balltp"},
-        {"God Mode", "godmode"},
-        {"Büyük Hitbox", "hugehitbox"},
-        {"AutoGol", "autoGoal"},
-        {"Freeze Others", "freezeOthers"},
-        {"Gravity Hile", "gravity"},
-        {"Fake Lag", "fakeLag"},
-        {"Fake Ping", "fakePing"},
-        {"UltraVision", "ultraVision"},
-        {"SpeedHack", "speedHack"},
-        {"AntiTackle", "antiTackle"},
-        {"Stamina Freeze", "staminaFreeze"},
-        {"Teleport Opponents", "teleportOpp"},
-        {"Spawn Ball", "spawnBall"},
-        {"Geçici Özellik", "applyGecici"}
-    }
-    for idx,pair in ipairs(genel) do
-        createToggle(Tabs["GENEL"], idx, pair[1], hiles, pair[2])
-    end
+local function ActionBtn(tab,row,text,func)
+    local btn = Instance.new("TextButton")
+    btn.Name = "_Action_"..row.."_"..tab
+    btn.Size = UDim2.new(0.95,0,0,33)
+    btn.Position = UDim2.new(0.025,0,0,((row-1)*38)+6)
+    btn.BackgroundColor3 = Color3.fromRGB(83,80,162)
+    btn.TextColor3 = Color3.fromRGB(255,255,218)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 15
+    btn.Text = text
+    btn.Parent = TabFrames[tab]
+    btn.MouseButton1Click:Connect(func)
+end
 
-    -- Oyuncu
-    createSlider(Tabs["OYUNCU"], 1, "Yürüyüş Hızı", 10, 300, hiles, "camzoom")
-    createButton(Tabs["OYUNCU"], 2, "Topu Kendi Üzerine Çek", function() hiles.balltp = true end)
-    createButton(Tabs["OYUNCU"], 3, "Boost Jump", function() hiles.jumppower = true end)
-    createButton(Tabs["OYUNCU"], 4, "Tüm Hileleri Sıfırla", function()
-        for k,v in pairs(hiles) do
-            if type(v)=="boolean" then hiles[k]=false end
-        end
-        for k in pairs(hiles.extraVars) do
-            hiles.extraVars[k]=false
+----------------------------------------
+-- GENEL Sekmesi
+do
+    local Items = {
+        {"Hız Hilesi","walkspeed"},
+        {"Zıplama Hilesi","jumppower"},
+        {"Sonsuz Stamina","sonsuzstamina"},
+        {"NoClip","noclip"},
+        {"Duvar Geç","duvargec"},
+        {"Anti-Kick","antikick"},
+        {"Magnet Top","magnettop"},
+        {"Infinite Pass","infpass"},
+        {"Otoblok","otoblok"},
+        {"Top ESP","toplumesp"},
+        {"Oyuncu ESP","oyuncuesp"},
+        {"Rainbow Menü","rainbowui"},
+        {"AutoFarm","autoFarm"},
+        {"Infinite Jump","infjump"},
+        {"Top Büyüt","topbuyut"},
+        {"Takım TP","takimtple"},
+        {"Teleport","teleport"},
+        {"CamLock","camlock"},
+        {"BlockKick","blockkick"},
+        {"Yerçekimi Yok","gravity"},
+        {"KillAura","killAura"},
+        {"Otomatik Gol","otoGol"},
+        {"GodMode","godmode"},
+        {"Süper Görüş","supervision"},
+        {"AntiStun","antistun"},
+        {"StunFreeze","stunfreeze"},
+        {"Fake Lag","fakeLag"},
+        {"Top Kaybet","topkaybet"},
+        {"OtoTakım","autotakim"},
+        {"Kutu Hilesi","kutuhin"},
+        {"BossMod","bossmod"},
+        {"Hile Panel","hilepanel"},
+        {"AutoSkill","autoskill"},
+        {"TPSHack","tpshack"},
+        {"Power Kick","powerkick"},
+        {"Top Deposu","topdeposu"},
+    }
+    for i,t in ipairs(Items) do
+        ToggleBtn("GENEL",i,t[1],hileVars,t[2])
+    end
+end
+
+-- OYUNCU Sekmesi
+do
+    ValueSlider("OYUNCU",1,"Yürüyüş Hızı",10,120,hileVars,"walkspeed")
+    ValueSlider("OYUNCU",2,"Zıplama Gücü",25,200,hileVars,"jumppower")
+    ValueSlider("OYUNCU",3,"Kamera Zoom",10,120,hileVars,"camzoom")
+    ValueSlider("OYUNCU",4,"FOV",70,140,hileVars,"fov")
+    ActionBtn("OYUNCU",5,"Bütün Hileleri Kapat",function()
+        for k,v in pairs(hileVars) do
+            if type(v)=="boolean" then hileVars[k]=false end
         end
     end)
-    createButton(Tabs["OYUNCU"], 5, "Sunucu Bağlantısını Kopyala", function()
+    ActionBtn("OYUNCU",6,"Discord'u Kopyala",function()
         if setclipboard then setclipboard("https://discord.gg/sokakfutbolu") end
     end)
-    createButton(Tabs["OYUNCU"], 6, "Tüm Oyuncuları TP'le", function()
-        for _,ply in ipairs(Players:GetPlayers()) do
-            if ply ~= localPlayer and ply.Character and localPlayer.Character then
-                if ply.Character:FindFirstChild("HumanoidRootPart") and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                    ply.Character.HumanoidRootPart.CFrame = localPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(math.random(-6,6),2,math.random(-6,6))
-                end
-            end
-        end
-    end)
-    createButton(Tabs["OYUNCU"], 7, "Tüm Oyunculara Top Ver", function()
-        local ball = workspace:FindFirstChild("Ball") or (workspace.Balls and workspace.Balls:FindFirstChildWhichIsA("BasePart"))
-        if ball and localPlayer and localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
-            ball.CFrame = localPlayer.Character.HumanoidRootPart.CFrame
-        end
-    end)
-    createButton(Tabs["OYUNCU"], 8, "Herkesi Freezele", function()
-        hiles.freezeOthers = true
-    end)
-
-    -- Top
-    createSlider(Tabs["TOP"], 1, "Top Yüksekliği", 0, 80, hiles, "topYukseklik")
-    createButton(Tabs["TOP"], 2, "Topu Büyüt", function() hiles.ballsize = true end)
-    createButton(Tabs["TOP"], 3, "Topu Küçült", function()
-        local ball = workspace:FindFirstChild("Ball") or (workspace.Balls and workspace.Balls:FindFirstChildWhichIsA("BasePart"))
-        if ball then ball.Size = Vector3.new(3,3,3) end
-    end)
-    createButton(Tabs["TOP"], 4, "Topu Spawnla", function()
-        hiles.spawnBall = true
-    end)
-
-    -- Takım & Antiler
-    for i=1,18 do
-        createToggle(Tabs["TAKIM"],i,"Takım Takviyesi "..i,hiles.extraVars,"t"..i)
-    end
-    for i=1,28 do
-        createToggle(Tabs["ANTİ"],i,"Anti Yöntemi "..i,hiles.extraVars,"anti"..i)
-    end
-    for i=1,22 do
-        createToggle(Tabs["VİZÜEL"],i,"Visual Efekt "..i,hiles.extraVars,"viz"..i)
-    end
-    for i=1,16 do
-        createToggle(Tabs["EKSTRA"],i,"Ekstra Hile "..i,hiles.extraVars,"extra"..i)
-    end
-    for i=1,12 do
-        createButton(Tabs["BİLGİ"], i, "Menü çalışmıyorsa discord.gg/sokakfutbolu!", function() end)
-    end
-
-    -- Sistem sekmesi
-    createButton(Tabs["SİSTEM"], 1, "MENÜYÜ YENİLE", function()
-        gui.Enabled = false wait(.22) gui.Enabled = true
-    end)
-    createButton(Tabs["SİSTEM"], 2, "MENÜYÜ KAPAT", function() gui.Enabled = false end)
 end
 
-fillMenu()
+-- TOP Sekmesi
+do
+    ToggleBtn("TOP",1,"Top Büyüt",hileVars,"topbuyut")
+    ToggleBtn("TOP",2,"Top Deposu",hileVars,"topdeposu")
+    ToggleBtn("TOP",3,"PowerKick",hileVars,"powerkick")
+    ActionBtn("TOP",4,"Topu Kendine Çek",function()
+        hileVars["magnettop"]=true
+    end)
+    ActionBtn("TOP",5,"Topu Büyüt",function()
+        local ball = Workspace:FindFirstChild("Ball")
+        if ball then ball.Size = Vector3.new(10,10,10) end
+    end)
+    ActionBtn("TOP",6,"Topu Spawnla",function()
+        hileVars["topdeposu"]=true
+    end)
+end
 
-local function getC()
+-- ESP Sekmesi
+do
+    ToggleBtn("ESP",1,"Top ESP",hileVars,"toplumesp")
+    ToggleBtn("ESP",2,"Oyuncu ESP",hileVars,"oyuncuesp")
+    ToggleBtn("ESP",3,"Süper Görüş",hileVars,"supervision")
+    ToggleBtn("ESP",4,"Fake Lag",hileVars,"fakeLag")
+end
+
+-- TAKIM Sekmesi
+do
+    for i = 1, 12 do
+        ToggleBtn("TAKIM",i,"Takım Takviyesi "..i,ekVars,"team_"..i)
+    end
+    ActionBtn("TAKIM",13,"Takımı Serbest Değiştir",function()
+        hileVars["takimtple"]=true
+    end)
+    ActionBtn("TAKIM",14,"Tüm Takım Aktif",function()
+        for k,_ in pairs(ekVars) do ekVars[k]=true end
+    end)
+end
+
+-- ANTİ Sekmesi
+do
+    for i=1,15 do
+        ToggleBtn("ANTİ",i,"Anti Yöntemi "..i,ekVars,"anti_"..i)
+    end
+    ToggleBtn("ANTİ",16,"Anti-Kick",hileVars,"antikick")
+    ToggleBtn("ANTİ",17,"BlockKick",hileVars,"blockkick")
+    ToggleBtn("ANTİ",18,"AntiStun",hileVars,"antistun")
+    ToggleBtn("ANTİ",19,"StunFreeze",hileVars,"stunfreeze")
+end
+
+-- EXTRA Sekmesi
+do
+    for i=1,24 do
+        ToggleBtn("EXTRA",i,"Ekstra Özellik "..i,ekVars,"extra_"..i)
+    end
+end
+
+-- BİLGİ Sekmesi
+do
+    for i=1,8 do
+        ActionBtn("BİLGİ",i,"discord.gg/sokakfutbolu",function() end)
+    end
+end
+
+-- SİSTEM Sekmesi
+do
+    ActionBtn("SİSTEM",1,"Menüyü Yenile",function()
+        gui.Enabled=false wait(.15) gui.Enabled=true
+    end)
+    ActionBtn("SİSTEM",2,"Menü Kapat",function()
+        gui.Enabled=false
+    end)
+    ActionBtn("SİSTEM",3,"Oyun Yenile [Spawn]",function()
+        StarterGui:SetCore("ResetButtonCallback", true)
+        local char = localPlayer.Character
+        if char then
+            char:BreakJoints()
+        end
+    end)
+    ActionBtn("SİSTEM",4,"Tüm GUI'yi Kapat",function()
+        gui.Parent = nil
+    end)
+end
+
+-- Yardımcı Fonksiyonlar
+local function getChar()
     return localPlayer and localPlayer.Character
 end
-
+local function getHum()
+    local c = getChar()
+    return c and c:FindFirstChildOfClass("Humanoid")
+end
+local function getRoot()
+    local c = getChar()
+    return c and c:FindFirstChild("HumanoidRootPart")
+end
 local function getBall()
-    local w = workspace
-    return w:FindFirstChild("Ball") or (w:FindFirstChild("Balls") and w.Balls:FindFirstChildWhichIsA("BasePart")) or nil
+    return Workspace and Workspace:FindFirstChild("Ball")
 end
 
-local function performCheats()
-    if not menuOpen then return end
-    local c = getC()
-    local h = c and c:FindFirstChildOfClass("Humanoid")
-    if hiles.walkspeed and h then
-        h.WalkSpeed = hiles.camzoom or 28
-    elseif h then
-        h.WalkSpeed = 16
+local function makeESP(part,label)
+    if part:FindFirstChild("ESPUI") then return end
+    local bill = Instance.new("BillboardGui", part)
+    bill.Name = "ESPUI"
+    bill.Size = UDim2.new(0,160,0,36)
+    bill.AlwaysOnTop = true
+    bill.StudsOffset = Vector3.new(0,3,0)
+    local lb = Instance.new("TextLabel",bill)
+    lb.Size = UDim2.new(1,0,1,0)
+    lb.BackgroundTransparency = 1
+    lb.TextColor3 = Color3.fromRGB(249,217,97)
+    lb.Text = label or part.Name
+    lb.Font = Enum.Font.GothamBlack
+    lb.TextScaled = true
+end
+
+RunService.RenderStepped:Connect(function()
+    if not gui.Enabled or not menuFrame or not menuFrame.Parent then return end
+
+    local hum = getHum()
+    if hum then
+        hum.WalkSpeed = hileVars.walkspeed or 16
+        hum.JumpPower = hileVars.jumppower or 50
     end
 
-    if hiles.jumppower and h then
-        h.JumpPower = 180
-    elseif h then
-        h.JumpPower = 60
-    end
-
-    if hiles.infstamina then
-        for _,v in pairs(workspace:GetDescendants()) do
+    if hileVars.sonsuzstamina then
+        for _,v in pairs(Workspace:GetDescendants()) do
             if v:IsA("NumberValue") and v.Name:lower():find("stamina") then
-                v.Value = 99999
+                v.Value = 1e7
             end
         end
     end
 
-    if hiles.catchball and getBall() and c then
-        c:MoveTo(getBall().Position + Vector3.new(0,2,0))
-    end
-
-    if hiles.wallpass and c then
-        for _,v in pairs(c:GetDescendants()) do
-            if v:IsA("BasePart") then v.CanCollide = false end
+    if hileVars.noclip or hileVars.duvargec then
+        local char = getChar()
+        if char then
+            for _,v in pairs(char:GetDescendants()) do
+                if v:IsA("BasePart") then v.CanCollide = false end
+            end
         end
     end
 
-    if hiles.antikick and setreadonly and getrawmetatable then
-        setreadonly(getrawmetatable(game), false)
+    if hileVars.antikick and setreadonly and getrawmetatable then
         local mt = getrawmetatable(game)
-        local old = mt.__namecall
-        mt.__namecall = function(self, ...)
-            if getnamecallmethod and getnamecallmethod() == "Kick" then return end
-            return old(self, ...)
+        if mt and not mt.OldNamecallHooked then
+            setreadonly(mt, false)
+            mt.OldNamecallHooked = true
+            local old = mt.__namecall
+            mt.__namecall = function(self, ...)
+                local method = getnamecallmethod and getnamecallmethod()
+                if method == "Kick" then return end
+                return old(self, ...)
+            end
+            setreadonly(mt, true)
         end
-        setreadonly(mt, true)
     end
 
-    if hiles.magnet and getBall() and c then
-        getBall().CFrame = c.HumanoidRootPart.CFrame + Vector3.new(0,2,0)
+    if hileVars.magnettop and getBall() and getRoot() then
+        local ball = getBall()
+        if ball and ball:IsA("BasePart") then
+            ball.CFrame = getRoot().CFrame + Vector3.new(0,2,0)
+        end
     end
 
-    if hiles.ballsize and getBall() then
+    if hileVars.topbuyut and getBall() then
         getBall().Size = Vector3.new(8,8,8)
-        hiles.ballsize = false
     end
 
-    if hiles.noclip and c then
-        for _,v in pairs(c:GetDescendants()) do
-            if v:IsA("BasePart") then v.CanCollide = false end
-        end
+    if hileVars.toplumesp and getBall() then
+        makeESP(getBall(),"TOP")
     end
 
-    if hiles.espball and getBall() then
-        if not getBall():FindFirstChild("ESPUI") then
-            local bb = Instance.new("BillboardGui", getBall())
-            bb.Name = "ESPUI"
-            bb.Size = UDim2.new(0,135,0,40)
-            bb.StudsOffset = Vector3.new(0,3,0)
-            bb.AlwaysOnTop = true
-            local t = Instance.new("TextLabel", bb)
-            t.Size = UDim2.new(1,0,1,0)
-            t.BackgroundTransparency = 1
-            t.Text = "TOP BURADA"
-            t.TextColor3 = Color3.fromRGB(255,255,70)
-            t.Font = Enum.Font.GothamBlack
-            t.TextScaled = true
-        end
-    end
-
-    if hiles.espplayer then
+    if hileVars.oyuncuesp then
         for _,p in pairs(Players:GetPlayers()) do
             if p ~= localPlayer and p.Character and p.Character:FindFirstChild("Head") then
-                local h = p.Character.Head
-                if not h:FindFirstChild("ESPTag") then
-                    local b = Instance.new("BillboardGui", h)
-                    b.Name = "ESPTag"
-                    b.Size = UDim2.new(0,90,0,18)
-                    b.StudsOffset = Vector3.new(0,2,0)
-                    b.AlwaysOnTop = true
-                    local tx = Instance.new("TextLabel", b)
-                    tx.Size = UDim2.new(1,0,1,0)
-                    tx.BackgroundTransparency = 1
-                    tx.Text = p.DisplayName or p.Name
-                    tx.TextColor3 = Color3.fromRGB(110,255,162)
-                    tx.Font = Enum.Font.GothamBold
-                    tx.TextScaled = true
-                end
+                makeESP(p.Character.Head, p.DisplayName or p.Name)
             end
         end
     end
 
-    if hiles.rainbowui and menu then
-        local h = tick()%1
-        menu.BackgroundColor3 = Color3.fromHSV(h,0.36,0.34)
-    end
-
-    if hiles.infpass and getgc then
-        for _,func in pairs(getgc(true)) do
-            if type(func)=="function" and islclosure(func) and debug.getinfo(func).name:lower():find("cooldown") then
-                for i=1,debug.getinfo(func).nups do
-                    local uv = debug.getupvalue(func,i)
-                    if type(uv)=="number" then debug.setupvalue(func,i,0) end
-                end
-            end
-        end
-    end
-
-    if hiles.autoFarm and getBall() and c then
-        c:MoveTo(getBall().Position)
-        wait(.13)
-        for _,v in pairs(workspace:GetChildren()) do
-            if v.Name:lower():find("goal") or v.Name:lower():find("kale") then
-                c:MoveTo(v.Position + Vector3.new(0,2,0))
-            end
-        end
-    end
-
-    if hiles.balltp and getBall() and c then
-        c:MoveTo(getBall().Position + Vector3.new(0,.8,0))
-        hiles.balltp=false
-    end
-
-    if hiles.godmode and c then
-        for _,v in pairs(c:GetChildren()) do
-            if v:IsA("Humanoid") then v.MaxHealth=9999999 v.Health=9999999 end
-        end
-    end
-
-    if hiles.hugehitbox and c then
-        for _,v in pairs(c:GetDescendants()) do
-            if v:IsA("BasePart") then
-                v.Size = v.Size + Vector3.new(6,6,6)
-            end
-        end
-    end
-
-    if hiles.antistun and c and c:FindFirstChildOfClass("Humanoid") then
-        c:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Physics)
-        c:FindFirstChildOfClass("Humanoid"):SetStateEnabled(Enum.HumanoidStateType.Physics, false)
-    end
-
-    if hiles.blockkick and setreadonly and getrawmetatable then
-        setreadonly(getrawmetatable(game), false)
-        local mt = getrawmetatable(game)
-        local old = mt.__namecall
-        mt.__namecall = function(self, ...)
-            if getnamecallmethod and getnamecallmethod() == "Kick" then return end
-            return old(self, ...)
-        end
-        setreadonly(mt, true)
-    end
-
-    if hiles.autoGoal and getBall() and c then
-        local closestGoal = nil
-        local minDist = math.huge
-        for _,v in pairs(workspace:GetChildren()) do
-            if v:IsA("BasePart") and (v.Name:lower():find("goal") or v.Name:lower():find("kale")) then
-                local dist = (getBall().Position-v.Position).Magnitude
-                if dist < minDist then minDist = dist closestGoal = v end
-            end
-        end
-        if closestGoal then
-            c:MoveTo(getBall().Position)
-            wait(.13)
-            c:MoveTo(closestGoal.Position + Vector3.new(0,2,0))
-        end
-    end
-
-    if hiles.freezeOthers then
-        for _,p in pairs(Players:GetPlayers()) do
-            if p ~= localPlayer and p.Character and p.Character:FindFirstChildOfClass("Humanoid") then
-                p.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = 0
-            end
-        end
-    end
-
-    if hiles.fakeLag and c then
-        RunService.Heartbeat:Wait()
-        wait(math.random()*.18+.08)
-    end
-
-    if hiles.fakePing then
-        wait(math.random() * .13)
-    end
-
-    if hiles.gravity then
-        workspace.Gravity = 0
+    if hileVars.rainbowui and menuFrame then
+        local hsv = tick()%1
+        menuFrame.BackgroundColor3 = Color3.fromHSV(hsv,0.6,0.27)
     else
-        workspace.Gravity = 196.2
+        menuFrame.BackgroundColor3 = Color3.fromRGB(31,33,39)
     end
 
-    if hiles.spawnBall then
-        local template = ReplicatedStorage:FindFirstChild("Ball") or workspace:FindFirstChild("Ball")
-        if template then
-            local b = template:Clone()
-            b.Parent = workspace
-            b.Position = c and c.HumanoidRootPart and (c.HumanoidRootPart.Position+Vector3.new(0,7,0)) or Vector3.new(0,8,0)
+    if hileVars.gravity then
+        Workspace.Gravity = 30
+    else
+        Workspace.Gravity = 196.2
+    end
+
+    if hileVars.godmode and getHum() then
+        getHum().Health = getHum().MaxHealth
+        getHum().BreakJointsOnDeath = false
+        getHum().PlatformStand = false
+        getHum().Sit = false
+    end
+
+    if hileVars.fakeLag then
+        RunService:Set3dRenderingEnabled(false)
+        wait(0.2)
+        RunService:Set3dRenderingEnabled(true)
+    end
+
+    if hileVars.infjump then
+        UserInputService.JumpRequest:Connect(function()
+            local h = getHum()
+            if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
+        end)
+    end
+
+    if hileVars.supervision and Lighting then
+        Lighting.FogEnd = 1e6
+        Lighting.Brightness = 10
+        Lighting.ExposureCompensation = 2
+    end
+
+    if hileVars.fov then
+        pcall(function()
+            workspace.CurrentCamera.FieldOfView = hileVars.fov
+        end)
+    end
+
+    if hileVars.camzoom and workspace.CurrentCamera then
+        workspace.CurrentCamera.CameraSubject = getHum()
+        workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+        workspace.CurrentCamera.FieldOfView = hileVars.fov
+    end
+
+    if hileVars.otoblok then
+        -- OtoBlok Kodu: Top yakınsa otomatik blok at
+        if getRoot() and getBall() then
+            local char = getChar()
+            local dist = (getBall().Position - getRoot().Position).Magnitude
+            if dist < 10 then
+                for _,v in pairs(char:GetChildren()) do
+                    if v:IsA("Tool") and v.Name:lower():find("blok") then
+                        v:Activate()
+                    end
+                end
+            end
         end
-        hiles.spawnBall = false
     end
 
-    -- Extra, sistemik işlemler ve örnekler
-    for k,v in pairs(hiles.extraVars) do
-        if v then
-            -- örnek ekstra; birşeyler yapılabilir, placeholder
+    -- Ekstra, boss, kutu vb.
+    if hileVars.kutuhin then
+        for _,v in pairs(Workspace:GetDescendants()) do
+            if v:IsA("BasePart") and v.Name:lower():find("kutupick") then
+                v.CFrame = getRoot().CFrame + Vector3.new(2,0,0)
+            end
         end
     end
-end
 
-RunService.RenderStepped:Connect(performCheats)
-
-UserInputService.InputBegan:Connect(function(input, gp)
-    if gp then return end
-    if input.KeyCode == Enum.KeyCode.F5 then
-        toggleMenu()
-    elseif input.KeyCode == Enum.KeyCode.F6 then
-        for k, v in pairs(hiles) do
-            if type(v)=="boolean" then hiles[k]=not v end
+    if hileVars.bossmod then
+        for _,v in pairs(Players:GetPlayers()) do
+            if v ~= localPlayer and v.Character and v.Character:FindFirstChild("HumanoidRootPart") then
+                v.Character.HumanoidRootPart.CanCollide = false
+            end
         end
     end
-end)
+
+    -- TPSHack: player speed randomly swings to avoid script-detection
+    if hileVars.tpshack and getHum() then
+        getHum().WalkSpeed = math.random(20, 44)
+    end
+
+    if hileVars.autotakim and ReplicatedStorage:FindFirstChild("TakimDegistir") then
+        local rem = ReplicatedStorage:FindFirstChild("TakimDegistir")
+        if rem:IsA("RemoteEvent") then
+            rem:FireServer("AutoTakim")
+        end
+    end
+
+    if hileVars.autoskill then
+        -- Zamanlayıcıya bağlı skor denemesi
+        if getChar() then
+            for _,tool in pairs(getChar():GetChildren()) do
+                if tool:IsA("Tool") and tool.Name:lower():find("pas") then
+                    tool:Activate()
+                end
+            end
+        end
+    end
+
+    if hileVars.powerkick then
+        if getChar() then
+            for _,tool in pairs(getChar():GetChildren()) do
+                if tool:IsA("Tool") and tool.Name:lower():find("kick") then
+                    tool:Activate()
+                end
+            end
+        end
+    end
+
+    if hileVars.topdeposu and getBall() and getRoot() then
+        getBall().CFrame = getRoot().CFrame + Vector3.new(0,1,0)
+    end
+
+    if hileVars.otoGol and getBall() and getRoot() then
+        -- Topu otomatik karşı kaleye gönder
+        local kale = Workspace:FindFirstChild("GoalB")
+        if kale and kale:IsA("BasePart") then
+            getBall().CFrame = kale.CFrame + Vector3.new(0,2,0)
+        end
+    end
+
+    if hileVars.infpass and getgc and debug then
+        for _,f in ipairs(getgc(true)) do
+
+        -- End of Selection
+```
