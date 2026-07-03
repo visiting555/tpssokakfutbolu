@@ -3,24 +3,33 @@ local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 local TweenService = game:GetService("TweenService")
 local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Workspace = game:GetService("Workspace")
 local localPlayer = Players.LocalPlayer
 
-local function getSafeParent()
+local function getParent()
     local playerGui = localPlayer and localPlayer:FindFirstChildOfClass("PlayerGui")
     if playerGui then
         return playerGui
-    elseif pcall(function() return CoreGui end) then
-        return CoreGui
-    else
-        return nil
     end
+    if syn and syn.protect_gui then
+        local gui = Instance.new("ScreenGui")
+        syn.protect_gui(gui)
+        return gui
+    end
+    if pcall(function() return CoreGui end) then
+        return CoreGui
+    end
+    return game
 end
 
 local gui = Instance.new("ScreenGui")
-gui.Name = "TPS_SokakFutboluHile_Menu"
-gui.IgnoreGuiInset = false
+gui.Name = "SokakFutboluMENUV2"
+gui.IgnoreGuiInset = true
 gui.ResetOnSpawn = false
-gui.Parent = getSafeParent()
+gui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+gui.Parent = getParent()
 gui.Enabled = true
 
 local menuOpen = true
@@ -30,243 +39,259 @@ local function toggleMenu()
     gui.Enabled = menuOpen
 end
 
+local dragData = {dragging = false, dragInput = nil, start = nil, startPos = nil}
 local function dragify(frame)
-    local dragging, dragInput, start, startPos = false, nil, nil, nil
+    frame.Active = true
     frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 and not dragging then
-            dragging = true
-            start = input.Position
-            startPos = frame.Position
-        end
-    end)
-    frame.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = false
+        if input.UserInputType == Enum.UserInputType.MouseButton1 and not dragData.dragging then
+            dragData.dragging = true
+            dragData.start = Vector2.new(input.Position.X, input.Position.Y)
+            dragData.startPos = frame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragData.dragging = false
+                end
+            end)
         end
     end)
     frame.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement then
-            dragInput = input
+            dragData.dragInput = input
         end
     end)
     UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            local delta = input.Position - start
-            frame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        if input == dragData.dragInput and dragData.dragging then
+            local delta = Vector2.new(input.Position.X, input.Position.Y) - dragData.start
+            frame.Position = UDim2.new(
+                dragData.startPos.X.Scale, dragData.startPos.X.Offset + delta.X,
+                dragData.startPos.Y.Scale, dragData.startPos.Y.Offset + delta.Y
+            )
         end
     end)
 end
 
 local menu = Instance.new("Frame")
-menu.Name = "AnaMenu"
-menu.Size = UDim2.new(0, 670, 0, 740)
-menu.Position = UDim2.new(0.5, -335, 0.5, -370)
+menu.Name = "Menu"
+menu.Parent = gui
 menu.AnchorPoint = Vector2.new(0.5,0.5)
-menu.BackgroundColor3 = Color3.fromRGB(35,38,48)
+menu.Position = UDim2.new(0.5,0,0.5,0)
+menu.Size = UDim2.new(0,500,0,620)
+menu.BackgroundColor3 = Color3.fromRGB(33,34,46)
 menu.BorderSizePixel = 0
 menu.Visible = true
-menu.Parent = gui
+menu.Active = true
 
 dragify(menu)
 
-local topBar = Instance.new("Frame", menu)
-topBar.Name = "TopBar"
-topBar.Size = UDim2.new(1, 0, 0, 52)
-topBar.BackgroundColor3 = Color3.fromRGB(17,18,34)
-topBar.BorderSizePixel = 0
-topBar.Parent = menu
+local header = Instance.new("Frame")
+header.Name = "Header"
+header.Parent = menu
+header.Size = UDim2.new(1,0,0,50)
+header.BackgroundColor3 = Color3.fromRGB(24,48,96)
+header.BorderSizePixel = 0
 
-local title = Instance.new("TextLabel", topBar)
-title.Name = "Baslik"
-title.Text = "🟦 TPS SOKAK FUTBOLU GELİŞMİŞ HİLE MENÜSÜ 🟥"
-title.Size = UDim2.new(1, 0, 1, 0)
-title.BackgroundTransparency = 1
-title.TextColor3 = Color3.fromRGB(188,255,141)
-title.Font = Enum.Font.GothamBlack
-title.TextSize = 27
-title.TextStrokeTransparency = 0.49
-title.TextStrokeColor3 = Color3.fromRGB(0,0,0)
+local headerTitle = Instance.new("TextLabel")
+headerTitle.Parent = header
+headerTitle.Size = UDim2.new(1,0,1,0)
+headerTitle.BackgroundTransparency = 1
+headerTitle.Text = "Tps Sokak Futbolu Menü V2"
+headerTitle.TextColor3 = Color3.fromRGB(144,255,99)
+headerTitle.Font = Enum.Font.GothamBlack
+headerTitle.TextScaled = true
+headerTitle.TextStrokeTransparency = 0.6
 
-local closeBtn = Instance.new("TextButton", topBar)
-closeBtn.Name = "KapatBtn"
-closeBtn.Size = UDim2.new(0, 54, 1, 0)
-closeBtn.Position = UDim2.new(1, -54, 0, 0)
-closeBtn.Text = "KAPAT"
-closeBtn.Font = Enum.Font.GothamBold
-closeBtn.TextColor3 = Color3.new(1,0.09,0.09)
-closeBtn.TextSize = 15
-closeBtn.BackgroundColor3 = Color3.fromRGB(120,24,38)
-closeBtn.BorderSizePixel = 0
-closeBtn.AutoButtonColor = true
-closeBtn.MouseButton1Click:Connect(function()
+local closeButton = Instance.new("TextButton")
+closeButton.Parent = header
+closeButton.Size = UDim2.new(0,56,1,0)
+closeButton.Position = UDim2.new(1,-56,0,0)
+closeButton.BackgroundColor3 = Color3.fromRGB(160,40,60)
+closeButton.TextColor3 = Color3.fromRGB(255,255,255)
+closeButton.Text = "X"
+closeButton.Font = Enum.Font.GothamBold
+closeButton.TextScaled = true
+closeButton.AutoButtonColor = true
+closeButton.BorderSizePixel = 0
+closeButton.ZIndex = 2
+closeButton.MouseButton1Click:Connect(function()
     gui.Enabled = false
 end)
 
-local tabList = {"GENEL", "OYUNCU", "TOP", "TAKIM", "ANTİ", "VİZÜEL", "EKSTRA", "BİLGİ"}
-local tabButtons, tabFrames = {}, {}
-local activeTab = "GENEL"
+local Tabs = {}
+local TABNAMES = {
+    "GENEL", "OYUNCU", "TOP", "TAKIM", "ANTİ", "VİZÜEL", "EKSTRA", "BİLGİ", "SİSTEM"
+}
+local SelectedTab = "GENEL"
 
-local tabBar = Instance.new("Frame", menu)
+local tabBar = Instance.new("Frame")
 tabBar.Name = "TabBar"
+tabBar.Parent = menu
 tabBar.Size = UDim2.new(1,0,0,38)
-tabBar.Position = UDim2.new(0,0,0,52)
-tabBar.BackgroundColor3 = Color3.fromRGB(34,41,62)
+tabBar.Position = UDim2.new(0,0,0,50)
+tabBar.BackgroundColor3 = Color3.fromRGB(31,39,52)
 tabBar.BorderSizePixel = 0
 
-for i,tabName in ipairs(tabList) do
-    local btn = Instance.new("TextButton", tabBar)
-    btn.Name = tabName .. "_Btn"
-    btn.Text = tabName
-    btn.Size = UDim2.new(1/#tabList, 0, 1, 0)
-    btn.Position = UDim2.new((i-1)/#tabList, 0, 0, 0)
-    btn.BackgroundColor3 = (tabName == activeTab) and Color3.fromRGB(98,180,230) or Color3.fromRGB(25,27,36)
-    btn.TextColor3 = Color3.fromRGB(238,222,192)
-    btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 16
+local btns = {}
+
+for i,tabName in ipairs(TABNAMES) do
+    local btn = Instance.new("TextButton")
+    btn.Parent = tabBar
+    btn.Name = tabName.."_Btn"
+    btn.Size = UDim2.new(1/#TABNAMES,0,1,0)
+    btn.Position = UDim2.new((i-1)/#TABNAMES,0,0,0)
     btn.BorderSizePixel = 0
+    btn.Text = tabName
     btn.AutoButtonColor = true
-    tabButtons[tabName] = btn
+    btn.TextColor3 = (tabName == SelectedTab) and Color3.fromRGB(211,239,132) or Color3.fromRGB(228,228,228)
+    btn.BackgroundColor3 = (tabName == SelectedTab) and Color3.fromRGB(59,140,249) or Color3.fromRGB(25,27,36)
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 15
+    btns[tabName] = btn
     btn.MouseButton1Click:Connect(function()
-        for _,button in pairs(tabButtons) do
-            button.BackgroundColor3 = Color3.fromRGB(25,27,36)
+        for n,button in pairs(btns) do
+            button.BackgroundColor3 = (tabName == n) and Color3.fromRGB(59,140,249) or Color3.fromRGB(25,27,36)
+            button.TextColor3      = (tabName == n) and Color3.fromRGB(211,239,132) or Color3.fromRGB(228,228,228)
         end
-        btn.BackgroundColor3 = Color3.fromRGB(98,180,230)
-        for name,frame in pairs(tabFrames) do
-            frame.Visible = (name == tabName)
+        for n,fr in pairs(Tabs) do
+            fr.Visible = n==tabName
         end
-        activeTab = tabName
+        SelectedTab = tabName
     end)
 end
 
-for _,tabName in ipairs(tabList) do
-    local frame = Instance.new("ScrollingFrame")
-    frame.Name = tabName .. "_Frame"
-    frame.Size = UDim2.new(1, 0, 1, -90)
-    frame.Position = UDim2.new(0, 0, 0, 90)
-    frame.BackgroundTransparency = 1
-    frame.BorderSizePixel = 0
-    frame.ScrollBarThickness = 7
-    frame.CanvasSize = UDim2.new(0,0,10,0)
-    frame.Visible = (tabName == activeTab)
-    frame.Parent = menu
-    tabFrames[tabName] = frame
+for i,tabName in ipairs(TABNAMES) do
+    local scroll = Instance.new("ScrollingFrame", menu)
+    scroll.Size = UDim2.new(1,0,1,-88)
+    scroll.Position = UDim2.new(0,0,0,88)
+    scroll.Name = tabName.."_Frame"
+    scroll.BackgroundTransparency = 1
+    scroll.BorderSizePixel = 0
+    scroll.ScrollBarThickness = 6
+    scroll.CanvasSize = UDim2.new(0,0,5,0)
+    scroll.Visible = (tabName == SelectedTab)
+    Tabs[tabName] = scroll
 end
 
 local hiles = {
-    walkspeed=false,
-    jumppower=false,
-    infstamina=false,
-    catchball=false,
-    wallpass=false,
-    antikick=false,
-    magnet=false,
-    ballsize=false,
-    teamtp=false,
-    noclip=false,
-    espball=false,
-    espplayer=false,
-    rainbowui=false,
-    infpass=false,
-    autoFarm=false,
-    camzoom=70,
-    haxboost=false,
-    camFollow=false,
-    antistun=false,
-    antifreeze=false,
-    silentaim=false,
-    blockkick=false,
-    autoblock=false,
-    balltp=false,
-    godmode=false,
-    hugehitbox=false,
-    autoGoal=false,
-    freezeOthers=false,
-    fakeLag=false,
-    fakePing=false,
-    gravity=false,
-    extraVars={}
+    walkspeed = false,
+    jumppower = false,
+    infstamina = false,
+    catchball = false,
+    wallpass = false,
+    antikick = false,
+    magnet = false,
+    ballsize = false,
+    teamtp = false,
+    noclip = false,
+    espball = false,
+    espplayer = false,
+    rainbowui = false,
+    infpass = false,
+    autoFarm = false,
+    camzoom = 22,
+    haxboost = false,
+    camFollow = false,
+    antistun = false,
+    antifreeze = false,
+    silentaim = false,
+    blockkick = false,
+    autoblock = false,
+    balltp = false,
+    godmode = false,
+    hugehitbox = false,
+    autoGoal = false,
+    freezeOthers = false,
+    fakeLag = false,
+    fakePing = false,
+    gravity = false,
+    extraVars = {},
+    spawnBall = false,
+    applyGecici = false, -- Example for more options
+    antiTackle = false,
+    staminaFreeze = false,
+    speedHack = false,
+    ultraVision = false,
+    teleportOpp = false,
 }
 
-local function createToggle(tab,y,text,ref, key)
-    local toggle = Instance.new("TextButton", tab)
-    toggle.Name = "Toggle_"..tostring(key)
-    toggle.Size = UDim2.new(0.47,0,0,36)
-    toggle.Position = UDim2.new((y%2 == 1) and 0.03 or 0.51,0,0,math.floor((y-1)/2)*41+7)
-    toggle.BackgroundColor3 = Color3.fromRGB(52,54,73)
-    toggle.BorderSizePixel = 0
-    toggle.TextColor3 = ref[key] and Color3.fromRGB(90,255,80) or Color3.fromRGB(170,180,210)
-    toggle.Font = Enum.Font.GothamBold
-    toggle.TextSize = 15
-    toggle.Text = ("%s [%s]"):format(text,ref[key] and "AÇIK" or "KAPALI")
-    toggle.AutoButtonColor = true
-    toggle.MouseButton1Click:Connect(function()
+local function createToggle(tab, row, text, ref, key)
+    local tgl = Instance.new("TextButton", tab)
+    tgl.Name = "Tgl_"..(key or #tab:GetChildren())
+    tgl.Size = UDim2.new(0.48,0,0,34)
+    tgl.Position = UDim2.new((row%2==1) and 0.02 or 0.50, 0, 0, math.floor((row-1)/2)*37+8)
+    tgl.BackgroundColor3 = Color3.fromRGB(52,54,73)
+    tgl.BorderSizePixel = 0
+    tgl.TextColor3 = ref[key] and Color3.fromRGB(80,255,98) or Color3.fromRGB(195,195,240)
+    tgl.Font = Enum.Font.GothamBold
+    tgl.TextSize = 15
+    tgl.Text = ("%s [%s]"):format(text, ref[key] and "AÇIK" or "KAPALI")
+    tgl.AutoButtonColor = true
+    tgl.MouseButton1Click:Connect(function()
         ref[key] = not ref[key]
-        toggle.Text = ("%s [%s]"):format(text,ref[key] and "AÇIK" or "KAPALI")
-        toggle.TextColor3 = ref[key] and Color3.fromRGB(90,255,80) or Color3.fromRGB(170,180,210)
-        if key=="rainbowui" and ref[key] then
+        tgl.Text = ("%s [%s]"):format(text, ref[key] and "AÇIK" or "KAPALI")
+        tgl.TextColor3 = ref[key] and Color3.fromRGB(80,255,98) or Color3.fromRGB(195,195,240)
+        if key == "rainbowui" and ref[key] then
             spawn(function()
                 while ref[key] and menu and menu.Parent do
-                    for h=0,1,.017 do
-                        menu.BackgroundColor3 = Color3.fromHSV(h,.41,.37)
-                        wait(.018)
+                    for h=0,1,0.009 do
+                        menu.BackgroundColor3 = Color3.fromHSV(h,0.39,0.33)
+                        wait(0.012)
                         if not ref[key] then break end
                     end
                 end
-                menu.BackgroundColor3 = Color3.fromRGB(35,38,48)
+                menu.BackgroundColor3 = Color3.fromRGB(33,34,46)
             end)
         end
     end)
 end
 
-local function createButton(tab, y, text, func)
+local function createButton(tab, row, text, fn)
     local btn = Instance.new("TextButton", tab)
-    btn.Name = "Button_"..string.gsub(text, "%s+", "")
-    btn.Size = UDim2.new(0.93,0,0,35)
-    btn.Position = UDim2.new(0.035,0,0,(y-1)*40+9)
-    btn.BackgroundColor3 = Color3.fromRGB(99,139,231)
-    btn.BorderSizePixel = 0
-    btn.TextColor3 = Color3.fromRGB(250,240,170)
+    btn.Name = "Btn_"..string.gsub(text," ","_")
+    btn.Size = UDim2.new(0.95,0,0,34)
+    btn.Position = UDim2.new(0.025,0,0,(row-1)*37+8)
+    btn.BackgroundColor3 = Color3.fromRGB(109,149,189)
+    btn.TextColor3 = Color3.fromRGB(255,255,200)
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 15
     btn.Text = text
+    btn.TextSize = 15
     btn.AutoButtonColor = true
-    btn.MouseButton1Click:Connect(func)
+    btn.BorderSizePixel = 0
+    btn.MouseButton1Click:Connect(fn)
 end
 
-local function createSlider(tab, y, text, min, max, ref, key)
+local function createSlider(tab, row, text, min, max, ref, key)
     local label = Instance.new("TextLabel", tab)
-    label.Size = UDim2.new(0.93,0,0,23)
-    label.Position = UDim2.new(0.035,0,0,(y-1)*45+11)
-    label.Text = text..": "..tostring(ref[key])
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 13
-    label.BorderSizePixel = 0
-    label.TextColor3 = Color3.fromRGB(220,220,120)
+    label.Position = UDim2.new(0.028,0,0,((row-1)*45+7))
+    label.Size = UDim2.new(0.94,0,0,19)
     label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamBold
+    label.TextColor3 = Color3.fromRGB(210,210,120)
+    label.TextSize = 13
+    label.Text = text..": "..tostring(ref[key])
 
-    local sliderBar = Instance.new("Frame", tab)
-    sliderBar.Size = UDim2.new(0.75,0,0,8)
-    sliderBar.Position = UDim2.new(0.04, 0, 0, (y-1)*45+36)
-    sliderBar.BackgroundColor3 = Color3.fromRGB(100,100,120)
-    sliderBar.BorderSizePixel = 0
+    local bar = Instance.new("Frame", tab)
+    bar.Position = UDim2.new(0.048,0,0,((row-1)*45+23))
+    bar.Size = UDim2.new(0.74,0,0,10)
+    bar.BackgroundColor3 = Color3.fromRGB(85,85,110)
+    bar.BorderSizePixel = 0
 
-    local handle = Instance.new("Frame", sliderBar)
-    handle.Size = UDim2.new(.09,0,1,0)
+    local handle = Instance.new("Frame", bar)
     handle.Position = UDim2.new((ref[key]-min)/(max-min),0,0,0)
-    handle.BackgroundColor3 = Color3.fromRGB(255,226,61)
+    handle.Size = UDim2.new(.14,0,1,0)
+    handle.BackgroundColor3 = Color3.fromRGB(255,240,70)
     handle.BorderSizePixel = 0
 
     local dragging = false
     handle.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = true end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging=true end
     end)
     handle.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging=false end
     end)
-    sliderBar.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType==Enum.UserInputType.MouseMovement then
-            local mx = input.Position.X-sliderBar.AbsolutePosition.X
-            local ratio = math.clamp(mx/sliderBar.AbsoluteSize.X,0,1)
+    bar.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local mx = input.Position.X - bar.AbsolutePosition.X
+            local ratio = math.clamp(mx/bar.AbsoluteSize.X,0,1)
             handle.Position = UDim2.new(ratio,0,0,0)
             local val = math.floor(min+ratio*(max-min))
             label.Text = text..": "..val
@@ -276,90 +301,116 @@ local function createSlider(tab, y, text, min, max, ref, key)
 end
 
 local function fillMenu()
-    local genelFeatures = {
-        {"Sınırsız Hız (WalkSpeed)", "walkspeed"},
-        {"Sınırsız Zıplama (JumpPower)", "jumppower"},
+    local genel = {
+        {"Sınırsız Hız", "walkspeed"},
+        {"Sınırsız Zıplama", "jumppower"},
         {"Sonsuz Stamina", "infstamina"},
-        {"Otomatik Top Yakala", "catchball"},
-        {"Duvar Geçme", "wallpass"},
-        {"Anti Kick", "antikick"},
+        {"Oto Top Yakala", "catchball"},
+        {"Duvar Geçiş", "wallpass"},
+        {"Anti-Kick", "antikick"},
         {"Top Magneti", "magnet"},
         {"Top Büyüt", "ballsize"},
-        {"Takım Teleport", "teamtp"},
-        {"NoClip Modu", "noclip"},
+        {"Takım TP", "teamtp"},
+        {"NoClip", "noclip"},
         {"Top ESP", "espball"},
         {"Oyuncu ESP", "espplayer"},
-        {"Gökkuşağı UI", "rainbowui"},
+        {"Rainbow UI", "rainbowui"},
         {"Sınırsız Pas", "infpass"},
         {"Oto Farm", "autoFarm"},
-        {"Boost Modu", "haxboost"},
+        {"Boost", "haxboost"},
         {"Kamera Takibi", "camFollow"},
         {"Anti Stun", "antistun"},
         {"Anti Freeze", "antifreeze"},
         {"Sessiz Aim", "silentaim"},
         {"Kick Blok", "blockkick"},
         {"Oto Blok", "autoblock"},
-        {"Top Teleport", "balltp"},
-        {"GodMode", "godmode"},
-        {"Kocaman Hitbox", "hugehitbox"},
-        {"Auto Gol", "autoGoal"},
+        {"Top TP", "balltp"},
+        {"God Mode", "godmode"},
+        {"Büyük Hitbox", "hugehitbox"},
+        {"AutoGol", "autoGoal"},
+        {"Freeze Others", "freezeOthers"},
+        {"Gravity Hile", "gravity"},
         {"Fake Lag", "fakeLag"},
         {"Fake Ping", "fakePing"},
-        {"Yerçekimi Kapalı", "gravity"},
-        {"Diğerlerini Dondur", "freezeOthers"},
+        {"UltraVision", "ultraVision"},
+        {"SpeedHack", "speedHack"},
+        {"AntiTackle", "antiTackle"},
+        {"Stamina Freeze", "staminaFreeze"},
+        {"Teleport Opponents", "teleportOpp"},
+        {"Spawn Ball", "spawnBall"},
+        {"Geçici Özellik", "applyGecici"}
     }
-    for idx, pair in ipairs(genelFeatures) do
-        createToggle(tabFrames["GENEL"], idx, pair[1], hiles, pair[2])
+    for idx,pair in ipairs(genel) do
+        createToggle(Tabs["GENEL"], idx, pair[1], hiles, pair[2])
     end
 
-    createSlider(tabFrames["OYUNCU"], 1, "Hız", 13, 300, hiles, "camzoom")
-    createButton(tabFrames["OYUNCU"], 2, "Topu Kendi Üzerine Çek", function() hiles.balltp = true end)
-    createButton(tabFrames["OYUNCU"], 3, "Güçlü Zıpla", function() hiles.jumppower = true end)
-    createButton(tabFrames["OYUNCU"], 4, "Tüm Hileleri Sıfırla", function()
+    -- Oyuncu
+    createSlider(Tabs["OYUNCU"], 1, "Yürüyüş Hızı", 10, 300, hiles, "camzoom")
+    createButton(Tabs["OYUNCU"], 2, "Topu Kendi Üzerine Çek", function() hiles.balltp = true end)
+    createButton(Tabs["OYUNCU"], 3, "Boost Jump", function() hiles.jumppower = true end)
+    createButton(Tabs["OYUNCU"], 4, "Tüm Hileleri Sıfırla", function()
         for k,v in pairs(hiles) do
             if type(v)=="boolean" then hiles[k]=false end
         end
-        for k in pairs(hiles.extraVars) do hiles.extraVars[k]=false end
+        for k in pairs(hiles.extraVars) do
+            hiles.extraVars[k]=false
+        end
     end)
-    createButton(tabFrames["OYUNCU"], 5, "Sunucu Adresini Kopyala", function()
+    createButton(Tabs["OYUNCU"], 5, "Sunucu Bağlantısını Kopyala", function()
         if setclipboard then setclipboard("https://discord.gg/sokakfutbolu") end
     end)
-    createButton(tabFrames["OYUNCU"], 6, "Tüm Oyuncuları Teleportla", function()
+    createButton(Tabs["OYUNCU"], 6, "Tüm Oyuncuları TP'le", function()
         for _,ply in ipairs(Players:GetPlayers()) do
             if ply ~= localPlayer and ply.Character and localPlayer.Character then
                 if ply.Character:FindFirstChild("HumanoidRootPart") and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
-                    ply.Character.HumanoidRootPart.CFrame = localPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(math.random(-8,8),2,math.random(-8,8))
+                    ply.Character.HumanoidRootPart.CFrame = localPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(math.random(-6,6),2,math.random(-6,6))
                 end
             end
         end
     end)
-    createButton(tabFrames["OYUNCU"], 7, "Herkese Top Ver", function()
+    createButton(Tabs["OYUNCU"], 7, "Tüm Oyunculara Top Ver", function()
         local ball = workspace:FindFirstChild("Ball") or (workspace.Balls and workspace.Balls:FindFirstChildWhichIsA("BasePart"))
-        if ball then ball.CFrame = localPlayer.Character.HumanoidRootPart.CFrame end
+        if ball and localPlayer and localPlayer.Character and localPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            ball.CFrame = localPlayer.Character.HumanoidRootPart.CFrame
+        end
+    end)
+    createButton(Tabs["OYUNCU"], 8, "Herkesi Freezele", function()
+        hiles.freezeOthers = true
     end)
 
-    createSlider(tabFrames["TOP"], 1, "Top Yüksekliği", 0, 50, hiles, "topYukseklik")
-    createButton(tabFrames["TOP"], 2, "Topu Büyüt", function() hiles.ballsize=true end)
-    createButton(tabFrames["TOP"], 3, "Topu Küçült", function() 
+    -- Top
+    createSlider(Tabs["TOP"], 1, "Top Yüksekliği", 0, 80, hiles, "topYukseklik")
+    createButton(Tabs["TOP"], 2, "Topu Büyüt", function() hiles.ballsize = true end)
+    createButton(Tabs["TOP"], 3, "Topu Küçült", function()
         local ball = workspace:FindFirstChild("Ball") or (workspace.Balls and workspace.Balls:FindFirstChildWhichIsA("BasePart"))
         if ball then ball.Size = Vector3.new(3,3,3) end
     end)
+    createButton(Tabs["TOP"], 4, "Topu Spawnla", function()
+        hiles.spawnBall = true
+    end)
 
+    -- Takım & Antiler
+    for i=1,18 do
+        createToggle(Tabs["TAKIM"],i,"Takım Takviyesi "..i,hiles.extraVars,"t"..i)
+    end
+    for i=1,28 do
+        createToggle(Tabs["ANTİ"],i,"Anti Yöntemi "..i,hiles.extraVars,"anti"..i)
+    end
     for i=1,22 do
-        createToggle(tabFrames["ANTİ"], i, "Ekstra Anti Sponge "..i, hiles.extraVars, "anti"..i)
+        createToggle(Tabs["VİZÜEL"],i,"Visual Efekt "..i,hiles.extraVars,"viz"..i)
     end
     for i=1,16 do
-        createToggle(tabFrames["TAKIM"], i, "Takım Takviyesi #" .. i, hiles.extraVars, "team"..i)
-    end
-    for i=1,30 do
-        createToggle(tabFrames["VİZÜEL"], i, "Görsel Efekt "..i, hiles.extraVars, "vis"..i)
-    end
-    for i=1,16 do
-        createToggle(tabFrames["EKSTRA"], i, "Ekstra Hile "..i, hiles.extraVars, "ekstra"..i)
+        createToggle(Tabs["EKSTRA"],i,"Ekstra Hile "..i,hiles.extraVars,"extra"..i)
     end
     for i=1,12 do
-        createButton(tabFrames["BİLGİ"], i, "Menü çalışmıyorsa /rehber yaz veya discord'a katıl!", function() end)
+        createButton(Tabs["BİLGİ"], i, "Menü çalışmıyorsa discord.gg/sokakfutbolu!", function() end)
     end
+
+    -- Sistem sekmesi
+    createButton(Tabs["SİSTEM"], 1, "MENÜYÜ YENİLE", function()
+        gui.Enabled = false wait(.22) gui.Enabled = true
+    end)
+    createButton(Tabs["SİSTEM"], 2, "MENÜYÜ KAPAT", function() gui.Enabled = false end)
 end
 
 fillMenu()
@@ -367,25 +418,26 @@ fillMenu()
 local function getC()
     return localPlayer and localPlayer.Character
 end
+
 local function getBall()
     local w = workspace
     return w:FindFirstChild("Ball") or (w:FindFirstChild("Balls") and w.Balls:FindFirstChildWhichIsA("BasePart")) or nil
 end
 
-local heartbeat = RunService.RenderStepped
-local function haxLoop()
+local function performCheats()
     if not menuOpen then return end
-
-    if hiles.walkspeed and getC() and getC():FindFirstChildOfClass("Humanoid") then
-        getC():FindFirstChildOfClass("Humanoid").WalkSpeed = hiles.camzoom or 100
-    elseif getC() and getC():FindFirstChildOfClass("Humanoid") then
-        getC():FindFirstChildOfClass("Humanoid").WalkSpeed = 16
+    local c = getC()
+    local h = c and c:FindFirstChildOfClass("Humanoid")
+    if hiles.walkspeed and h then
+        h.WalkSpeed = hiles.camzoom or 28
+    elseif h then
+        h.WalkSpeed = 16
     end
 
-    if hiles.jumppower and getC() and getC():FindFirstChildOfClass("Humanoid") then
-        getC():FindFirstChildOfClass("Humanoid").JumpPower = 180
-    elseif getC() and getC():FindFirstChildOfClass("Humanoid") then
-        getC():FindFirstChildOfClass("Humanoid").JumpPower = 60
+    if hiles.jumppower and h then
+        h.JumpPower = 180
+    elseif h then
+        h.JumpPower = 60
     end
 
     if hiles.infstamina then
@@ -396,12 +448,12 @@ local function haxLoop()
         end
     end
 
-    if hiles.catchball and getBall() and getC() then
-        getC():MoveTo(getBall().Position + Vector3.new(0,2,0))
+    if hiles.catchball and getBall() and c then
+        c:MoveTo(getBall().Position + Vector3.new(0,2,0))
     end
 
-    if hiles.wallpass and getC() then
-        for _,v in pairs(getC():GetDescendants()) do
+    if hiles.wallpass and c then
+        for _,v in pairs(c:GetDescendants()) do
             if v:IsA("BasePart") then v.CanCollide = false end
         end
     end
@@ -417,17 +469,17 @@ local function haxLoop()
         setreadonly(mt, true)
     end
 
-    if hiles.magnet and getBall() and getC() then
-        getBall().CFrame = getC().HumanoidRootPart.CFrame + Vector3.new(0,2,0)
+    if hiles.magnet and getBall() and c then
+        getBall().CFrame = c.HumanoidRootPart.CFrame + Vector3.new(0,2,0)
     end
 
     if hiles.ballsize and getBall() then
         getBall().Size = Vector3.new(8,8,8)
-        hiles.ballsize=false
+        hiles.ballsize = false
     end
 
-    if hiles.noclip and getC() then
-        for _,v in pairs(getC():GetDescendants()) do
+    if hiles.noclip and c then
+        for _,v in pairs(c:GetDescendants()) do
             if v:IsA("BasePart") then v.CanCollide = false end
         end
     end
@@ -438,11 +490,12 @@ local function haxLoop()
             bb.Name = "ESPUI"
             bb.Size = UDim2.new(0,135,0,40)
             bb.StudsOffset = Vector3.new(0,3,0)
+            bb.AlwaysOnTop = true
             local t = Instance.new("TextLabel", bb)
             t.Size = UDim2.new(1,0,1,0)
             t.BackgroundTransparency = 1
-            t.Text = "TOP ŞU ANDA BURADA"
-            t.TextColor3 = Color3.fromRGB(255,255,80)
+            t.Text = "TOP BURADA"
+            t.TextColor3 = Color3.fromRGB(255,255,70)
             t.Font = Enum.Font.GothamBlack
             t.TextScaled = true
         end
@@ -456,12 +509,13 @@ local function haxLoop()
                     local b = Instance.new("BillboardGui", h)
                     b.Name = "ESPTag"
                     b.Size = UDim2.new(0,90,0,18)
-                    b.StudsOffset = Vector3.new(0,2.1,0)
+                    b.StudsOffset = Vector3.new(0,2,0)
+                    b.AlwaysOnTop = true
                     local tx = Instance.new("TextLabel", b)
                     tx.Size = UDim2.new(1,0,1,0)
                     tx.BackgroundTransparency = 1
                     tx.Text = p.DisplayName or p.Name
-                    tx.TextColor3 = Color3.fromRGB(122,255,128)
+                    tx.TextColor3 = Color3.fromRGB(110,255,162)
                     tx.Font = Enum.Font.GothamBold
                     tx.TextScaled = true
                 end
@@ -471,7 +525,7 @@ local function haxLoop()
 
     if hiles.rainbowui and menu then
         local h = tick()%1
-        menu.BackgroundColor3 = Color3.fromHSV(h,0.46,0.33)
+        menu.BackgroundColor3 = Color3.fromHSV(h,0.36,0.34)
     end
 
     if hiles.infpass and getgc then
@@ -485,38 +539,38 @@ local function haxLoop()
         end
     end
 
-    if hiles.autoFarm and getBall() and getC() then
-        getC():MoveTo(getBall().Position)
-        wait(.12)
+    if hiles.autoFarm and getBall() and c then
+        c:MoveTo(getBall().Position)
+        wait(.13)
         for _,v in pairs(workspace:GetChildren()) do
             if v.Name:lower():find("goal") or v.Name:lower():find("kale") then
-                getC():MoveTo(v.Position + Vector3.new(0,2,0))
+                c:MoveTo(v.Position + Vector3.new(0,2,0))
             end
         end
     end
 
-    if hiles.balltp and getBall() and getC() then
-        getC():MoveTo(getBall().Position + Vector3.new(0,1.5,0))
+    if hiles.balltp and getBall() and c then
+        c:MoveTo(getBall().Position + Vector3.new(0,.8,0))
         hiles.balltp=false
     end
 
-    if hiles.godmode and getC() then
-        for _,v in pairs(getC():GetChildren()) do
-            if v:IsA("Humanoid") then v.MaxHealth = 1e7 v.Health = 1e7 end
+    if hiles.godmode and c then
+        for _,v in pairs(c:GetChildren()) do
+            if v:IsA("Humanoid") then v.MaxHealth=9999999 v.Health=9999999 end
         end
     end
 
-    if hiles.hugehitbox and getC() then
-        for _,v in pairs(getC():GetDescendants()) do
+    if hiles.hugehitbox and c then
+        for _,v in pairs(c:GetDescendants()) do
             if v:IsA("BasePart") then
-                v.Size = v.Size + Vector3.new(5,5,5)
+                v.Size = v.Size + Vector3.new(6,6,6)
             end
         end
     end
 
-    if hiles.antistun and getC() and getC():FindFirstChildOfClass("Humanoid") then
-        getC():FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Physics)
-        getC():FindFirstChildOfClass("Humanoid"):SetStateEnabled(Enum.HumanoidStateType.Physics, false)
+    if hiles.antistun and c and c:FindFirstChildOfClass("Humanoid") then
+        c:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Physics)
+        c:FindFirstChildOfClass("Humanoid"):SetStateEnabled(Enum.HumanoidStateType.Physics, false)
     end
 
     if hiles.blockkick and setreadonly and getrawmetatable then
@@ -530,7 +584,7 @@ local function haxLoop()
         setreadonly(mt, true)
     end
 
-    if hiles.autoGoal and getBall() and getC() then
+    if hiles.autoGoal and getBall() and c then
         local closestGoal = nil
         local minDist = math.huge
         for _,v in pairs(workspace:GetChildren()) do
@@ -540,9 +594,9 @@ local function haxLoop()
             end
         end
         if closestGoal then
-            getC():MoveTo(getBall().Position)
-            wait(.18)
-            getC():MoveTo(closestGoal.Position + Vector3.new(0,2,0))
+            c:MoveTo(getBall().Position)
+            wait(.13)
+            c:MoveTo(closestGoal.Position + Vector3.new(0,2,0))
         end
     end
 
@@ -554,13 +608,13 @@ local function haxLoop()
         end
     end
 
-    if hiles.fakeLag and getC() then
+    if hiles.fakeLag and c then
         RunService.Heartbeat:Wait()
-        wait(math.random()*.25+.1)
+        wait(math.random()*.18+.08)
     end
 
     if hiles.fakePing then
-        wait(math.random() * .15)
+        wait(math.random() * .13)
     end
 
     if hiles.gravity then
@@ -569,15 +623,25 @@ local function haxLoop()
         workspace.Gravity = 196.2
     end
 
-    for k,v in pairs(hiles.extraVars) do
-        if v then
-            -- Burada extralar örnek davranış gösterebilir
+    if hiles.spawnBall then
+        local template = ReplicatedStorage:FindFirstChild("Ball") or workspace:FindFirstChild("Ball")
+        if template then
+            local b = template:Clone()
+            b.Parent = workspace
+            b.Position = c and c.HumanoidRootPart and (c.HumanoidRootPart.Position+Vector3.new(0,7,0)) or Vector3.new(0,8,0)
         end
+        hiles.spawnBall = false
     end
 
+    -- Extra, sistemik işlemler ve örnekler
+    for k,v in pairs(hiles.extraVars) do
+        if v then
+            -- örnek ekstra; birşeyler yapılabilir, placeholder
+        end
+    end
 end
 
-heartbeat:Connect(haxLoop)
+RunService.RenderStepped:Connect(performCheats)
 
 UserInputService.InputBegan:Connect(function(input, gp)
     if gp then return end
