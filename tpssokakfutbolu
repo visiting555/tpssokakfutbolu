@@ -6,7 +6,6 @@ local StarterGui = game:GetService("StarterGui")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
-
 local localPlayer = Players.LocalPlayer
 
 local function GetGuiParent()
@@ -24,186 +23,161 @@ local function GetGuiParent()
     return CoreGui
 end
 
-local gui = Instance.new("ScreenGui")
-gui.Name = "TPSFutbolHileMenu_Main"
-gui.IgnoreGuiInset = true
-gui.ResetOnSpawn = false
-gui.Enabled = true
-gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
-gui.Parent = GetGuiParent()
+local TPSMENU = Instance.new("ScreenGui")
+TPSMENU.Name = "SokakFutboluHileMenu"
+TPSMENU.IgnoreGuiInset = false
+TPSMENU.Parent = GetGuiParent()
+TPSMENU.ResetOnSpawn = false
+TPSMENU.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+TPSMENU.Enabled = true
 
-local menuFrame = Instance.new("Frame")
-menuFrame.Name = "AnaHileMenu"
-menuFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-menuFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-menuFrame.Size = UDim2.new(0, 690, 0, 550)
-menuFrame.BackgroundColor3 = Color3.fromRGB(31, 33, 39)
-menuFrame.BorderSizePixel = 0
-menuFrame.Parent = gui
+local AnaFrame = Instance.new("Frame")
+AnaFrame.Name = "AnaMenu"
+AnaFrame.AnchorPoint = Vector2.new(0.5,0.5)
+AnaFrame.BackgroundColor3 = Color3.fromRGB(30,34,50)
+AnaFrame.BorderSizePixel = 0
+AnaFrame.Position = UDim2.new(0.5,0,0.5,0)
+AnaFrame.Size = UDim2.new(0,710,0,564)
+AnaFrame.Parent = TPSMENU
 
-local headerFrame = Instance.new("Frame")
-headerFrame.Name = "Header"
-headerFrame.Size = UDim2.new(1, 0, 0, 50)
-headerFrame.BackgroundColor3 = Color3.fromRGB(58, 98, 180)
-headerFrame.Parent = menuFrame
+local UICorner = Instance.new("UICorner",AnaFrame)
+UICorner.CornerRadius = UDim.new(0,18)
 
-local headerTitle = Instance.new("TextLabel")
-headerTitle.Name = "Baslik"
-headerTitle.Size = UDim2.new(0.8, 0, 1, 0)
-headerTitle.Position = UDim2.new(0, 16, 0, 0)
-headerTitle.BackgroundTransparency = 1
-headerTitle.Text = "Sokak Futbolu TPS Hile Menü v4"
-headerTitle.TextColor3 = Color3.fromRGB(239, 255, 123)
-headerTitle.Font = Enum.Font.FredokaOne
-headerTitle.TextScaled = true
-headerTitle.TextXAlignment = Enum.TextXAlignment.Left
-headerTitle.Parent = headerFrame
+local HeaderFrame = Instance.new("Frame")
+HeaderFrame.Size = UDim2.new(1,0,0,56)
+HeaderFrame.BackgroundColor3 = Color3.fromRGB(50,80,170)
+HeaderFrame.Name = "Header"
+HeaderFrame.Parent = AnaFrame
+local HeaderTitle = Instance.new("TextLabel")
+HeaderTitle.Name = "Baslik"
+HeaderTitle.Position = UDim2.new(0,18,0,0)
+HeaderTitle.Size = UDim2.new(0.82,0,1,0)
+HeaderTitle.BackgroundTransparency = 1
+HeaderTitle.Text = "Sokak Futbolu Mega Hile Menüsü v5"
+HeaderTitle.TextColor3 = Color3.fromRGB(235,255,123)
+HeaderTitle.Font = Enum.Font.FredokaOne
+HeaderTitle.TextScaled = true
+HeaderTitle.TextXAlignment = Enum.TextXAlignment.Left
+HeaderTitle.Parent = HeaderFrame
 
-local closeBtn = Instance.new("TextButton")
-closeBtn.Name = "Kapat"
-closeBtn.Size = UDim2.new(0, 46, 1, 0)
-closeBtn.Position = UDim2.new(1, -50, 0, 0)
-closeBtn.BackgroundColor3 = Color3.fromRGB(222, 77, 77)
-closeBtn.Text = "X"
-closeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-closeBtn.TextScaled = true
-closeBtn.Font = Enum.Font.FredokaOne
-closeBtn.AutoButtonColor = true
-closeBtn.BorderSizePixel = 0
-closeBtn.Parent = headerFrame
-closeBtn.MouseButton1Click:Connect(function()
-    gui.Enabled = false
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Name = "Kapat"
+CloseBtn.Size = UDim2.new(0,54,1,0)
+CloseBtn.Position = UDim2.new(1,-54,0,0)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(230, 64, 70)
+CloseBtn.Text = "X"
+CloseBtn.TextColor3 = Color3.new(1,1,1)
+CloseBtn.TextScaled = true
+CloseBtn.Font = Enum.Font.FredokaOne
+CloseBtn.AutoButtonColor = true
+CloseBtn.BorderSizePixel = 0
+CloseBtn.Parent = HeaderFrame
+CloseBtn.MouseButton1Click:Connect(function()
+    TPSMENU.Enabled = false
 end)
 
-local dragging = false
-local dragOffset
-headerFrame.InputBegan:Connect(function(input)
+local dragging, dragOffset
+HeaderFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = true
-        dragOffset = input.Position - menuFrame.Position
+        dragOffset = Vector2.new(input.Position.X, input.Position.Y)
+            - Vector2.new(AnaFrame.Position.X.Offset, AnaFrame.Position.Y.Offset)
     end
 end)
-headerFrame.InputEnded:Connect(function(input)
+HeaderFrame.InputEnded:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 then
         dragging = false
     end
 end)
 UserInputService.InputChanged:Connect(function(input)
     if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-        menuFrame.Position = UDim2.new(0, input.Position.X - dragOffset.X, 0, input.Position.Y - dragOffset.Y)
+        local pos = Vector2.new(input.Position.X, input.Position.Y) - dragOffset
+        AnaFrame.Position = UDim2.new(0, pos.X, 0, pos.Y)
     end
 end)
 
-local TabNames = {
-    "GENEL",
-    "OYUNCU",
-    "TOP",
-    "ESP",
-    "TAKIM",
-    "ANTİ",
-    "EXTRA",
-    "BİLGİ",
-    "SİSTEM"
+local TABLIST = {
+    {"GENEL", "Genel Hile"},
+    {"OYUNCU","Oyuncu Hileleri"},
+    {"TOP","Top Hileleri"},
+    {"ESP","ESP"},
+    {"TAKIM","Takım"},
+    {"ANTİ","Anti"},
+    {"EXTRA","Ekstra"},
+    {"BİLGİ","Bilgi"},
+    {"SİSTEM","Sistem"}
 }
-local SelectedTab = TabNames[1]
-local TabButtons = {}
+local CurrentTab = "GENEL"
 local TabFrames = {}
 
-local tabBar = Instance.new("Frame")
-tabBar.Name = "SekmeBar"
-tabBar.Size = UDim2.new(1, 0, 0, 38)
-tabBar.Position = UDim2.new(0, 0, 0, 50)
-tabBar.BackgroundColor3 = Color3.fromRGB(40,44,56)
-tabBar.BorderSizePixel = 0
-tabBar.Parent = menuFrame
+local TabBar = Instance.new("Frame")
+TabBar.Size = UDim2.new(1,0,0,44)
+TabBar.Position = UDim2.new(0,0,0,56)
+TabBar.BackgroundColor3 = Color3.fromRGB(36,40,60)
+TabBar.BorderSizePixel = 0
+TabBar.Parent = AnaFrame
 
-for i, tab in ipairs(TabNames) do
+local TabBtns = {}
+for i, tabdat in ipairs(TABLIST) do
+    local tab,tabDesc = tabdat[1],tabdat[2]
     local btn = Instance.new("TextButton")
-    btn.Name = tab .. "_TabBtn"
-    btn.Size = UDim2.new(1/#TabNames, -2, 1, 0)
-    btn.Position = UDim2.new((i - 1) / #TabNames, i == 1 and 2 or 0, 0, 0)
+    btn.Size = UDim2.new(1/#TABLIST, -2, 1, 0)
+    btn.Position = UDim2.new((i-1)/#TABLIST, (i==1 and 2 or 0), 0,0)
     btn.Text = tab
+    btn.Name = "TabBtn_"..tab
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 15
-    btn.TextColor3 = (tab == SelectedTab) and Color3.fromRGB(233,255,123) or Color3.fromRGB(210,210,210)
-    btn.BackgroundColor3 = (tab == SelectedTab) and Color3.fromRGB(59,197,255) or Color3.fromRGB(31,33,39)
+    btn.TextColor3 = (tab==CurrentTab) and Color3.fromRGB(215,255,120) or Color3.fromRGB(215,215,215)
+    btn.BackgroundColor3 = (tab==CurrentTab) and Color3.fromRGB(55,195,235) or Color3.fromRGB(26,28,36)
     btn.BorderSizePixel = 0
     btn.AutoButtonColor = true
-    btn.Parent = tabBar
-    TabButtons[tab] = btn
+    btn.Parent = TabBar
+    TabBtns[tab] = btn
 
     local tabFrame = Instance.new("ScrollingFrame")
-    tabFrame.Name = tab .. "_Frame"
-    tabFrame.Size = UDim2.new(1, 0, 1, -92)
-    tabFrame.Position = UDim2.new(0, 0, 0, 90)
+    tabFrame.Name = "TabFrame_"..tab
+    tabFrame.Size = UDim2.new(1,0,1,-100)
+    tabFrame.Position = UDim2.new(0,0,0,100)
     tabFrame.BackgroundTransparency = 1
     tabFrame.BorderSizePixel = 0
     tabFrame.ScrollBarThickness = 7
-    tabFrame.CanvasSize = UDim2.new(0, 0, 3, 0)
-    tabFrame.Visible = tab == SelectedTab
-    tabFrame.Parent = menuFrame
+    tabFrame.CanvasSize = UDim2.new(0,0,8,0)
+    tabFrame.Visible = (tab==CurrentTab)
+    tabFrame.Parent = AnaFrame
     TabFrames[tab] = tabFrame
 
     btn.MouseButton1Click:Connect(function()
-        for name,button in pairs(TabButtons) do
-            local selected = (name == tab)
-            button.TextColor3 = selected and Color3.fromRGB(233,255,123) or Color3.fromRGB(210,210,210)
-            button.BackgroundColor3 = selected and Color3.fromRGB(59,197,255) or Color3.fromRGB(31,33,39)
+        for _,b in pairs(TabBtns) do
+            b.TextColor3 = Color3.fromRGB(215,215,215)
+            b.BackgroundColor3 = Color3.fromRGB(26,28,36)
         end
-        for name,frame in pairs(TabFrames) do
-            frame.Visible = name == tab
+        btn.TextColor3 = Color3.fromRGB(215,255,120)
+        btn.BackgroundColor3 = Color3.fromRGB(55,195,235)
+        for name,tf in pairs(TabFrames) do
+            tf.Visible = (name=="TabFrame_"..tab)
         end
-        SelectedTab = tab
+        CurrentTab = tab
     end)
 end
 
 local hileVars = {
-    walkspeed = 24,
-    jumppower = 60,
-    sonsuzstamina = false,
-    noclip = false,
-    duvargec = false,
-    antikick = false,
-    magnettop = false,
-    infpass = false,
-    otoblok = false,
-    toplumesp = false,
-    oyuncuesp = false,
-    rainbowui = false,
-    infjump = false,
-    topbuyut = false,
-    takimtple = false,
-    teleport = false,
-    camlock = false,
-    blockkick = false,
-    gravity = false,
-    fov = 70,
-    killAura = false,
-    autoFarm = false,
-    godmode = false,
-    supervision = false,
-    antistun = false,
-    stunfreeze = false,
-    fakeLag = false,
-    topkaybet = false,
-    autotakim = false,
-    kutuhin = false,
-    camzoom = 18,
-    topdeposu = false,
-    otoGol = false,
-    bossmod = false,
-    hilepanel = false,
-    autoskill = false,
-    tpshack = false,
-    powerkick = false,
+    walkspeed = 20, jumppower = 50,
+    sonsuzstamina = false, noclip = false, duvargec = false, antikick = false, 
+    magnettop = false, infpass = false, otoblok = false, toplumesp = false, oyuncuesp = false,
+    rainbowui = false, infjump = false, topbuyut = false, takimtple = false, teleport = false,
+    camlock = false, blockkick = false, gravity = false, fov = 70, killAura = false,
+    autoFarm = false, godmode = false, supervision = false, antistun = false, stunfreeze = false,
+    fakeLag = false, topkaybet = false, autotakim = false, kutuhin = false, camzoom = 18,
+    topdeposu = false, otoGol = false, bossmod = false, hilepanel = false, autoskill = false,
+    tpshack = false, powerkick = false,
 }
 local ekVars = {}
 
-local function ToggleBtn(tab, row, label, props, key)
+local function MakeToggle(tab, row, label, props, key)
     local btn = Instance.new("TextButton")
     btn.Name = "Toggle_"..key
-    btn.Size = UDim2.new(0.465,0,0,36)
-    btn.Position = UDim2.new((row%2==1 and 0.025 or 0.51),0,0,math.floor((row-1)/2)*41+6)
+    btn.Size = UDim2.new(0.47,0,0,34)
+    btn.Position = UDim2.new((row%2==1 and 0.025 or 0.51),0,0,math.floor((row-1)/2)*39+7)
     btn.BackgroundColor3 = props[key] and Color3.fromRGB(120,255,99) or Color3.fromRGB(46,46,70)
     btn.TextColor3 = props[key] and Color3.fromRGB(41,39,39) or Color3.fromRGB(192,255,200)
     btn.Font = Enum.Font.GothamBlack
@@ -217,20 +191,20 @@ local function ToggleBtn(tab, row, label, props, key)
         btn.TextColor3 = props[key] and Color3.fromRGB(41,39,39) or Color3.fromRGB(192,255,200)
     end)
 end
-local function ValueSlider(tab, row, text, min, max, prop, key)
+local function MakeSlider(tab, row, text, min, max, prop, key)
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0.68,0,0,18)
-    label.Position = UDim2.new(0.032,0,0,((row-1)*40 +4))
+    label.Size = UDim2.new(0.7,0,0,16)
+    label.Position = UDim2.new(0.038,0,0,((row-1)*38+2))
     label.BackgroundTransparency = 1
     label.Font = Enum.Font.GothamBold
-    label.TextColor3 = Color3.fromRGB(210,210,120)
+    label.TextColor3 = Color3.fromRGB(235,240,170)
     label.TextSize = 12
     label.Text = ("%s : %s"):format(text,prop[key])
     label.Parent = TabFrames[tab]
 
     local slider = Instance.new("Frame")
-    slider.Position=UDim2.new(0.02,0,0,((row-1)*40+20))
-    slider.Size=UDim2.new(0.8,0,0,13)
+    slider.Position=UDim2.new(0.03,0,0,((row-1)*38+18))
+    slider.Size=UDim2.new(0.85,0,0,14)
     slider.BackgroundColor3=Color3.fromRGB(95,132,198)
     slider.BorderSizePixel=0
     slider.Parent=TabFrames[tab]
@@ -238,7 +212,7 @@ local function ValueSlider(tab, row, text, min, max, prop, key)
     local slideBar = Instance.new("Frame")
     slideBar.Size=UDim2.new((prop[key]-min)/(max-min),0,1,0)
     slideBar.Position=UDim2.new(0,0,0,0)
-    slideBar.BackgroundColor3=Color3.fromRGB(237,219,82)
+    slideBar.BackgroundColor3=Color3.fromRGB(234,227,57)
     slideBar.BorderSizePixel=0
     slideBar.Parent=slider
 
@@ -260,12 +234,11 @@ local function ValueSlider(tab, row, text, min, max, prop, key)
         end
     end)
 end
-
-local function ActionBtn(tab,row,text,func)
+local function MakeAction(tab,row,text,func)
     local btn = Instance.new("TextButton")
     btn.Name = "_Action_"..row.."_"..tab
-    btn.Size = UDim2.new(0.95,0,0,33)
-    btn.Position = UDim2.new(0.025,0,0,((row-1)*38)+6)
+    btn.Size = UDim2.new(0.96,0,0,32)
+    btn.Position = UDim2.new(0.02,0,0,((row-1)*36)+7)
     btn.BackgroundColor3 = Color3.fromRGB(83,80,162)
     btn.TextColor3 = Color3.fromRGB(255,255,218)
     btn.Font = Enum.Font.GothamBold
@@ -275,172 +248,114 @@ local function ActionBtn(tab,row,text,func)
     btn.MouseButton1Click:Connect(func)
 end
 
-----------------------------------------
--- GENEL Sekmesi
-do
+do -- GENEL TAB
     local Items = {
-        {"Hız Hilesi","walkspeed"},
-        {"Zıplama Hilesi","jumppower"},
-        {"Sonsuz Stamina","sonsuzstamina"},
-        {"NoClip","noclip"},
-        {"Duvar Geç","duvargec"},
-        {"Anti-Kick","antikick"},
-        {"Magnet Top","magnettop"},
-        {"Infinite Pass","infpass"},
-        {"Otoblok","otoblok"},
-        {"Top ESP","toplumesp"},
-        {"Oyuncu ESP","oyuncuesp"},
-        {"Rainbow Menü","rainbowui"},
-        {"AutoFarm","autoFarm"},
-        {"Infinite Jump","infjump"},
-        {"Top Büyüt","topbuyut"},
-        {"Takım TP","takimtple"},
-        {"Teleport","teleport"},
-        {"CamLock","camlock"},
-        {"BlockKick","blockkick"},
-        {"Yerçekimi Yok","gravity"},
-        {"KillAura","killAura"},
-        {"Otomatik Gol","otoGol"},
-        {"GodMode","godmode"},
-        {"Süper Görüş","supervision"},
-        {"AntiStun","antistun"},
-        {"StunFreeze","stunfreeze"},
-        {"Fake Lag","fakeLag"},
-        {"Top Kaybet","topkaybet"},
-        {"OtoTakım","autotakim"},
-        {"Kutu Hilesi","kutuhin"},
-        {"BossMod","bossmod"},
-        {"Hile Panel","hilepanel"},
-        {"AutoSkill","autoskill"},
-        {"TPSHack","tpshack"},
-        {"Power Kick","powerkick"},
-        {"Top Deposu","topdeposu"},
+        {"Yürüyüş Hızı","walkspeed"},{"Zıplama Gücü","jumppower"},
+        {"Sınırsız Stamina","sonsuzstamina"},
+        {"NoClip","noclip"},{"Duvar Geç","duvargec"},{"Anti-Kick","antikick"},
+        {"Magnet Top","magnettop"},{"Infinite Pass","infpass"},{"Otoblok","otoblok"},
+        {"Top ESP","toplumesp"},{"Oyuncu ESP","oyuncuesp"},{"Rainbow Menü","rainbowui"},
+        {"AutoFarm","autoFarm"},{"Infinite Jump","infjump"},{"Top Büyüt","topbuyut"},
+        {"Takım TP","takimtple"},{"TP Hilesi","teleport"},{"CamLock","camlock"},
+        {"BlockKick","blockkick"},{"Yerçekimi Yok","gravity"},{"KillAura","killAura"},
+        {"AutoGol","otoGol"},{"GodMode","godmode"},{"Süper Görüş","supervision"},
+        {"AntiStun","antistun"},{"StunFreeze","stunfreeze"},{"Fake Lag","fakeLag"},
+        {"Top Kaybet","topkaybet"},{"OtoTakım","autotakim"},{"Kutu Hilesi","kutuhin"},
+        {"BossMod","bossmod"},{"HilePanel","hilepanel"},{"AutoSkill","autoskill"},
+        {"TPSHack","tpshack"},{"Power Kick","powerkick"},{"Top Deposu","topdeposu"}
     }
-    for i,t in ipairs(Items) do
-        ToggleBtn("GENEL",i,t[1],hileVars,t[2])
+    for i,v in ipairs(Items) do
+        MakeToggle("GENEL",i,v[1],hileVars,v[2])
     end
 end
 
--- OYUNCU Sekmesi
-do
-    ValueSlider("OYUNCU",1,"Yürüyüş Hızı",10,120,hileVars,"walkspeed")
-    ValueSlider("OYUNCU",2,"Zıplama Gücü",25,200,hileVars,"jumppower")
-    ValueSlider("OYUNCU",3,"Kamera Zoom",10,120,hileVars,"camzoom")
-    ValueSlider("OYUNCU",4,"FOV",70,140,hileVars,"fov")
-    ActionBtn("OYUNCU",5,"Bütün Hileleri Kapat",function()
-        for k,v in pairs(hileVars) do
-            if type(v)=="boolean" then hileVars[k]=false end
-        end
+do -- OYUNCU
+    MakeSlider("OYUNCU",1,"Yürüyüş Hızı",10,125,hileVars,"walkspeed")
+    MakeSlider("OYUNCU",2,"Zıplama Gücü",20,200,hileVars,"jumppower")
+    MakeSlider("OYUNCU",3,"Kamera Zoom",10,140,hileVars,"camzoom")
+    MakeSlider("OYUNCU",4,"FOV",70,150,hileVars,"fov")
+    MakeAction("OYUNCU",5,"Bütün Hileleri Kapat",function()
+        for k,v in pairs(hileVars) do if type(v)=="boolean" then hileVars[k]=false end end
     end)
-    ActionBtn("OYUNCU",6,"Discord'u Kopyala",function()
+    MakeAction("OYUNCU",6,"Discord'u Kopyala",function()
         if setclipboard then setclipboard("https://discord.gg/sokakfutbolu") end
     end)
 end
 
--- TOP Sekmesi
-do
-    ToggleBtn("TOP",1,"Top Büyüt",hileVars,"topbuyut")
-    ToggleBtn("TOP",2,"Top Deposu",hileVars,"topdeposu")
-    ToggleBtn("TOP",3,"PowerKick",hileVars,"powerkick")
-    ActionBtn("TOP",4,"Topu Kendine Çek",function()
-        hileVars["magnettop"]=true
+do -- TOP
+    MakeToggle("TOP",1,"Top Büyüt",hileVars,"topbuyut")
+    MakeToggle("TOP",2,"Top Deposu",hileVars,"topdeposu")
+    MakeToggle("TOP",3,"PowerKick",hileVars,"powerkick")
+    MakeAction("TOP",4,"Topu Kendine Çek",function() hileVars["magnettop"]=true end)
+    MakeAction("TOP",5,"Topu Büyüt",function()
+        local b=Workspace:FindFirstChild("Ball")
+        if b then b.Size = Vector3.new(12,12,12) end
     end)
-    ActionBtn("TOP",5,"Topu Büyüt",function()
-        local ball = Workspace:FindFirstChild("Ball")
-        if ball then ball.Size = Vector3.new(10,10,10) end
-    end)
-    ActionBtn("TOP",6,"Topu Spawnla",function()
-        hileVars["topdeposu"]=true
-    end)
+    MakeAction("TOP",6,"Topu Spawn'a Çek",function() hileVars["topdeposu"]=true end)
 end
 
--- ESP Sekmesi
-do
-    ToggleBtn("ESP",1,"Top ESP",hileVars,"toplumesp")
-    ToggleBtn("ESP",2,"Oyuncu ESP",hileVars,"oyuncuesp")
-    ToggleBtn("ESP",3,"Süper Görüş",hileVars,"supervision")
-    ToggleBtn("ESP",4,"Fake Lag",hileVars,"fakeLag")
+do -- ESP
+    MakeToggle("ESP",1,"Top ESP",hileVars,"toplumesp")
+    MakeToggle("ESP",2,"Oyuncu ESP",hileVars,"oyuncuesp")
+    MakeToggle("ESP",3,"Süper Görüş",hileVars,"supervision")
+    MakeToggle("ESP",4,"Fake Lag",hileVars,"fakeLag")
 end
 
--- TAKIM Sekmesi
-do
-    for i = 1, 12 do
-        ToggleBtn("TAKIM",i,"Takım Takviyesi "..i,ekVars,"team_"..i)
+do -- TAKIM
+    for i=1,16 do
+        MakeToggle("TAKIM",i,"Takım Takviyesi "..i,ekVars,"team_"..i)
     end
-    ActionBtn("TAKIM",13,"Takımı Serbest Değiştir",function()
-        hileVars["takimtple"]=true
-    end)
-    ActionBtn("TAKIM",14,"Tüm Takım Aktif",function()
+    MakeAction("TAKIM",17,"Takımı Serbest Değiştir",function() hileVars["takimtple"]=true end)
+    MakeAction("TAKIM",18,"Tüm Takımı Aktif Et",function()
         for k,_ in pairs(ekVars) do ekVars[k]=true end
     end)
 end
 
--- ANTİ Sekmesi
-do
-    for i=1,15 do
-        ToggleBtn("ANTİ",i,"Anti Yöntemi "..i,ekVars,"anti_"..i)
+do -- ANTI
+    for i=1,18 do
+        MakeToggle("ANTİ",i,"Anti Hilesi "..i,ekVars,"anti_"..i)
     end
-    ToggleBtn("ANTİ",16,"Anti-Kick",hileVars,"antikick")
-    ToggleBtn("ANTİ",17,"BlockKick",hileVars,"blockkick")
-    ToggleBtn("ANTİ",18,"AntiStun",hileVars,"antistun")
-    ToggleBtn("ANTİ",19,"StunFreeze",hileVars,"stunfreeze")
+    MakeToggle("ANTİ",19,"Anti-Kick",hileVars,"antikick")
+    MakeToggle("ANTİ",20,"BlockKick",hileVars,"blockkick")
+    MakeToggle("ANTİ",21,"AntiStun",hileVars,"antistun")
+    MakeToggle("ANTİ",22,"StunFreeze",hileVars,"stunfreeze")
 end
 
--- EXTRA Sekmesi
-do
-    for i=1,24 do
-        ToggleBtn("EXTRA",i,"Ekstra Özellik "..i,ekVars,"extra_"..i)
+do -- EXTRA
+    for i=1,28 do
+        MakeToggle("EXTRA",i,"Ekstra Özellik "..i,ekVars,"extra_"..i)
     end
 end
 
--- BİLGİ Sekmesi
-do
-    for i=1,8 do
-        ActionBtn("BİLGİ",i,"discord.gg/sokakfutbolu",function() end)
+do -- BİLGİ
+    for i=1,10 do
+        MakeAction("BİLGİ",i,"discord.gg/sokakfutbolu",function() end)
     end
 end
 
--- SİSTEM Sekmesi
-do
-    ActionBtn("SİSTEM",1,"Menüyü Yenile",function()
-        gui.Enabled=false wait(.15) gui.Enabled=true
+do -- SİSTEM
+    MakeAction("SİSTEM",1,"Menüyü Yenile",function()
+        TPSMENU.Enabled = false wait(0.13) TPSMENU.Enabled = true
     end)
-    ActionBtn("SİSTEM",2,"Menü Kapat",function()
-        gui.Enabled=false
-    end)
-    ActionBtn("SİSTEM",3,"Oyun Yenile [Spawn]",function()
+    MakeAction("SİSTEM",2,"Menü Kapat",function() TPSMENU.Enabled = false end)
+    MakeAction("SİSTEM",3,"Oyunu Yenile [Spawn]",function()
         StarterGui:SetCore("ResetButtonCallback", true)
         local char = localPlayer.Character
-        if char then
-            char:BreakJoints()
-        end
+        if char then char:BreakJoints() end
     end)
-    ActionBtn("SİSTEM",4,"Tüm GUI'yi Kapat",function()
-        gui.Parent = nil
-    end)
+    MakeAction("SİSTEM",4,"Tüm GUI'yi Kapat",function() TPSMENU.Parent = nil end)
 end
 
--- Yardımcı Fonksiyonlar
-local function getChar()
-    return localPlayer and localPlayer.Character
-end
-local function getHum()
-    local c = getChar()
-    return c and c:FindFirstChildOfClass("Humanoid")
-end
-local function getRoot()
-    local c = getChar()
-    return c and c:FindFirstChild("HumanoidRootPart")
-end
-local function getBall()
-    return Workspace and Workspace:FindFirstChild("Ball")
-end
+local function getChar() return localPlayer and localPlayer.Character end
+local function getHum() local c=getChar() return c and c:FindFirstChildOfClass("Humanoid") end
+local function getRoot() local c=getChar() return c and c:FindFirstChild("HumanoidRootPart") end
+local function getBall() return Workspace and Workspace:FindFirstChild("Ball") end
 
 local function makeESP(part,label)
     if part:FindFirstChild("ESPUI") then return end
     local bill = Instance.new("BillboardGui", part)
     bill.Name = "ESPUI"
-    bill.Size = UDim2.new(0,160,0,36)
+    bill.Size = UDim2.new(0,180,0,42)
     bill.AlwaysOnTop = true
     bill.StudsOffset = Vector3.new(0,3,0)
     local lb = Instance.new("TextLabel",bill)
@@ -453,7 +368,7 @@ local function makeESP(part,label)
 end
 
 RunService.RenderStepped:Connect(function()
-    if not gui.Enabled or not menuFrame or not menuFrame.Parent then return end
+    if not TPSMENU.Enabled or not AnaFrame or not AnaFrame.Parent then return end
 
     local hum = getHum()
     if hum then
@@ -463,9 +378,7 @@ RunService.RenderStepped:Connect(function()
 
     if hileVars.sonsuzstamina then
         for _,v in pairs(Workspace:GetDescendants()) do
-            if v:IsA("NumberValue") and v.Name:lower():find("stamina") then
-                v.Value = 1e7
-            end
+            if v:IsA("NumberValue") and v.Name:lower():find("stamina") then v.Value = 13000 end
         end
     end
 
@@ -480,9 +393,9 @@ RunService.RenderStepped:Connect(function()
 
     if hileVars.antikick and setreadonly and getrawmetatable then
         local mt = getrawmetatable(game)
-        if mt and not mt.OldNamecallHooked then
+        if mt and not mt.__YineMenuFix__ then
             setreadonly(mt, false)
-            mt.OldNamecallHooked = true
+            mt.__YineMenuFix__ = true
             local old = mt.__namecall
             mt.__namecall = function(self, ...)
                 local method = getnamecallmethod and getnamecallmethod()
@@ -501,7 +414,7 @@ RunService.RenderStepped:Connect(function()
     end
 
     if hileVars.topbuyut and getBall() then
-        getBall().Size = Vector3.new(8,8,8)
+        getBall().Size = Vector3.new(10,10,10)
     end
 
     if hileVars.toplumesp and getBall() then
@@ -516,11 +429,11 @@ RunService.RenderStepped:Connect(function()
         end
     end
 
-    if hileVars.rainbowui and menuFrame then
+    if hileVars.rainbowui and AnaFrame then
         local hsv = tick()%1
-        menuFrame.BackgroundColor3 = Color3.fromHSV(hsv,0.6,0.27)
+        AnaFrame.BackgroundColor3 = Color3.fromHSV(hsv,0.6,0.35)
     else
-        menuFrame.BackgroundColor3 = Color3.fromRGB(31,33,39)
+        AnaFrame.BackgroundColor3 = Color3.fromRGB(30,34,50)
     end
 
     if hileVars.gravity then
@@ -530,19 +443,21 @@ RunService.RenderStepped:Connect(function()
     end
 
     if hileVars.godmode and getHum() then
-        getHum().Health = getHum().MaxHealth
-        getHum().BreakJointsOnDeath = false
-        getHum().PlatformStand = false
-        getHum().Sit = false
+        local h = getHum()
+        h.Health = h.MaxHealth
+        h.BreakJointsOnDeath = false
+        h.PlatformStand = false
+        h.Sit = false
     end
 
     if hileVars.fakeLag then
         RunService:Set3dRenderingEnabled(false)
-        wait(0.2)
+        wait(0.17)
         RunService:Set3dRenderingEnabled(true)
     end
 
-    if hileVars.infjump then
+    if hileVars.infjump and not _G.YINEINFJCONN then
+        _G.YINEINFJCONN = true
         UserInputService.JumpRequest:Connect(function()
             local h = getHum()
             if h then h:ChangeState(Enum.HumanoidStateType.Jumping) end
@@ -550,12 +465,12 @@ RunService.RenderStepped:Connect(function()
     end
 
     if hileVars.supervision and Lighting then
-        Lighting.FogEnd = 1e6
-        Lighting.Brightness = 10
-        Lighting.ExposureCompensation = 2
+        Lighting.FogEnd = 9e5
+        Lighting.Brightness = 12
+        Lighting.ExposureCompensation = 2.5
     end
 
-    if hileVars.fov then
+    if hileVars.fov and workspace.CurrentCamera then
         pcall(function()
             workspace.CurrentCamera.FieldOfView = hileVars.fov
         end)
@@ -568,25 +483,22 @@ RunService.RenderStepped:Connect(function()
     end
 
     if hileVars.otoblok then
-        -- OtoBlok Kodu: Top yakınsa otomatik blok at
         if getRoot() and getBall() then
             local char = getChar()
+            if not char then return end
             local dist = (getBall().Position - getRoot().Position).Magnitude
-            if dist < 10 then
+            if dist < 12 then
                 for _,v in pairs(char:GetChildren()) do
-                    if v:IsA("Tool") and v.Name:lower():find("blok") then
-                        v:Activate()
-                    end
+                    if v:IsA("Tool") and v.Name:lower():find("blok") then v:Activate() end
                 end
             end
         end
     end
 
-    -- Ekstra, boss, kutu vb.
     if hileVars.kutuhin then
         for _,v in pairs(Workspace:GetDescendants()) do
             if v:IsA("BasePart") and v.Name:lower():find("kutupick") then
-                v.CFrame = getRoot().CFrame + Vector3.new(2,0,0)
+                if getRoot() then v.CFrame = getRoot().CFrame + Vector3.new(2.5,0,0) end
             end
         end
     end
@@ -599,9 +511,8 @@ RunService.RenderStepped:Connect(function()
         end
     end
 
-    -- TPSHack: player speed randomly swings to avoid script-detection
     if hileVars.tpshack and getHum() then
-        getHum().WalkSpeed = math.random(20, 44)
+        getHum().WalkSpeed = math.random(18, 56)
     end
 
     if hileVars.autotakim and ReplicatedStorage:FindFirstChild("TakimDegistir") then
@@ -612,7 +523,6 @@ RunService.RenderStepped:Connect(function()
     end
 
     if hileVars.autoskill then
-        -- Zamanlayıcıya bağlı skor denemesi
         if getChar() then
             for _,tool in pairs(getChar():GetChildren()) do
                 if tool:IsA("Tool") and tool.Name:lower():find("pas") then
@@ -622,12 +532,10 @@ RunService.RenderStepped:Connect(function()
         end
     end
 
-    if hileVars.powerkick then
-        if getChar() then
-            for _,tool in pairs(getChar():GetChildren()) do
-                if tool:IsA("Tool") and tool.Name:lower():find("kick") then
-                    tool:Activate()
-                end
+    if hileVars.powerkick and getChar() then
+        for _,tool in pairs(getChar():GetChildren()) do
+            if tool:IsA("Tool") and tool.Name:lower():find("kick") then
+                tool:Activate()
             end
         end
     end
@@ -637,7 +545,6 @@ RunService.RenderStepped:Connect(function()
     end
 
     if hileVars.otoGol and getBall() and getRoot() then
-        -- Topu otomatik karşı kaleye gönder
         local kale = Workspace:FindFirstChild("GoalB")
         if kale and kale:IsA("BasePart") then
             getBall().CFrame = kale.CFrame + Vector3.new(0,2,0)
@@ -646,6 +553,4 @@ RunService.RenderStepped:Connect(function()
 
     if hileVars.infpass and getgc and debug then
         for _,f in ipairs(getgc(true)) do
-
-        -- End of Selection
-```
+            -- kodun devamı aynı
